@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { ReactComponent as SearchIcon } from '../icons/search-icon.svg';
 
 const SearchForm = ({
 	handleSearch = () => {},
 	isLoading = false,
+	searchQuery = '',
+	updateSearchQuery = () => {},
 }) => {
-
-	const [searchQuery, setSearchQuery] = useState('');
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
@@ -23,7 +23,7 @@ const SearchForm = ({
 					id="query-input"
 					className="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
 					value={searchQuery}
-					onChange={({ target }) => setSearchQuery(target.value)}
+					onChange={({ target }) => updateSearchQuery(target.value)}
 				/>
 			</div>
 			<button
