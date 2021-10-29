@@ -3,31 +3,36 @@ import React, { useState } from 'react';
 import './App.css';
 import ResultsList from './components/ResultsList';
 import SearchForm from './components/SearchForm';
+import { search } from './services/searchService';
 
 function App() {
 
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
-  const handleDocumentTextRetrieved = (documentText) => {
-    console.log('documentText:', documentText);
+  const handleDocumentTextRetrieved = async (documentText) => {
+
+    const results = await search(searchQuery, documentText)
 
     setIsLoading(false);
-    setSearchResults([]);
+    setSearchResults(results);
   }
 
   const handleSearch = async (searchQuery) => {
     setIsLoading(true);
 
-    if (chrome) {
+    if (chrome && chrome.tabs) {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       console.info('tab:', tab);
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         function: () => {
-          handleDocumentTextRetrieved(document.body.innerText);
+          handleDocumentTextRetrieved(searchQuery, document.body.innerText);
         }
       })
+    } else {
+      handleDocumentTextRetrieved(searchQuery, '');
     }
   }
 
@@ -38,6 +43,8 @@ function App() {
       <SearchForm
         handleSearch={handleSearch}
         isLoading={isLoading}
+        searchQuery={searchQuery}
+        updateSearchQuery={setSearchQuery}
       />
 
       { searchResults && searchResults.length > 0 && (

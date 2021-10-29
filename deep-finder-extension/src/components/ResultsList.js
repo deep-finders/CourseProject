@@ -6,11 +6,19 @@ const ResultsList = ({
 }) => {
 
 	return (
-		<section>
-			{searchResults.map((searchResult, index) => (
-				<SearchResult searchResult={searchResult} key={`search-result-${index}`} />
-			))}
-		</section>
+		<>
+			<div className="flex my-4 space-x-4 items-center">
+				<div className="h-1 border-t border-gray-200 border-solid w-full"></div>
+				<span className="flex-grow whitespace-nowrap">{`${searchResults.length} results found`}</span>
+				<div className="h-1 border-t border-gray-200 border-solid w-full"></div>
+			</div>
+
+			<section className="flex flex-col space-y-4 max-h-96 overflow-y-scroll">
+				{searchResults.map((searchResult, index) => (
+					<SearchResult searchResult={searchResult} key={`search-result-${index}`} />
+				))}
+			</section>
+		</>
 	)
 }
 
