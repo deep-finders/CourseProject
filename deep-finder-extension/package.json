@@ -13,7 +13,9 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
+    "start-dev": "concurrently 'npm start' 'npm run mock-server'",
     "start": "craco start",
+    "mock-server": "json-server --watch mock-db.json --port 3004",
     "build": "./scripts/build.sh",
     "test": "craco test",
     "eject": "react-scripts eject"
