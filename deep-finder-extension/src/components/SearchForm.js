@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import { ReactComponent as SearchIcon } from '../icons/search-icon.svg';
+
 const SearchForm = ({
 	handleSearch = () => {},
 	isLoading = false,
@@ -25,10 +27,13 @@ const SearchForm = ({
 				/>
 			</div>
 			<button
-				className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+				className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 flex flex-nowrap items-center justify-center space-x-2"
 				type="submit"
 				disabled={isLoading}
-			>Search</button>
+			>
+				<SearchIcon className="h-5 w-5 fill-current"/>
+				<span>Search</span>
+			</button>
 		</form>
 	)
 }
