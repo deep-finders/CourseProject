@@ -2,6 +2,7 @@ import React from 'react';
 import SearchResult from './SearchResult';
 
 const ResultsList = ({
+	handleClickResult = () => {},
 	searchResults = [],
 }) => {
 
@@ -15,7 +16,10 @@ const ResultsList = ({
 
 			<section className="flex flex-col space-y-4 max-h-96 overflow-y-scroll">
 				{searchResults.map((searchResult, index) => (
-					<SearchResult searchResult={searchResult} key={`search-result-${index}`} />
+					<SearchResult
+						handleClickResult={handleClickResult}
+						searchResult={searchResult} key={`search-result-${index}`}
+					/>
 				))}
 			</section>
 		</>

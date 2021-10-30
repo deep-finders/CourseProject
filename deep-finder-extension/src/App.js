@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import ResultsList from './components/ResultsList';
 import SearchForm from './components/SearchForm';
@@ -14,9 +14,46 @@ function App() {
   const handleDocumentTextRetrieved = async (documentText) => {
 
     const results = await search(searchQuery, documentText)
+    console.log('(handleDocumentTextRetrieved) results:', results)
 
     setIsLoading(false);
     setSearchResults(results);
+  }
+
+  useEffect(() => {
+    console.log('App.js useEffect')
+
+    const chromeMessageListener = (request, sender, sendResponse) => {
+      console.info('request:', request);
+      console.info('sender:', sender);
+      const { documentHtml, documentText, documentPTags } = request;
+
+      handleDocumentTextRetrieved({
+        documentHtml,
+        documentText,
+        documentPTags,
+        pageUrl: sender.url,
+      })
+    }
+
+    if (chrome && chrome.runtime) {
+      chrome.runtime.onMessage.addListener(chromeMessageListener)
+    }
+
+    return () => {
+      if (chrome && chrome.runtime) {
+        console.log('')
+        chrome.runtime.onMessage.removeListener(chromeMessageListener)
+      }
+    }
+  }, [])
+
+  const handleClickResult = (result) => {
+    if (chrome && chrome.runtime) {
+      chrome.runtime.sendMessage({
+        result
+      })
+    }
   }
 
   const handleSearch = async (searchQuery) => {
@@ -24,11 +61,21 @@ function App() {
 
     if (chrome && chrome.tabs) {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      console.info('tab:', tab);
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         function: () => {
-          handleDocumentTextRetrieved(searchQuery, document.body.innerText);
+          chrome.runtime.sendMessage({
+            documentHtml: document.body.innerHTML,
+            documentText: document.body.innerText,
+            documentPTags: document.querySelectorAll("p"),
+          }, function (response) {
+            console.info('(executeScript) response:', response);
+          })
+
+          chrome.runtime.onMessage.addListener((request, sender) => {
+            console.log('(webpage) request:', request);
+            console.log('(webpage) sender:', sender);
+          })
         }
       })
     } else {
@@ -47,8 +94,11 @@ function App() {
         updateSearchQuery={setSearchQuery}
       />
 
-      { searchResults && searchResults.length > 0 && (
-        <ResultsList searchResults={searchResults} />
+      {searchResults && searchResults.length > 0 && (
+        <ResultsList
+          handleClickResult={handleClickResult}
+          searchResults={searchResults}
+        />
       )}
 
     </main>

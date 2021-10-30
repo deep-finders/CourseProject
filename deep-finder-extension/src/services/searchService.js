@@ -1,4 +1,4 @@
-const API_ROOT = 'https://placeholder.io/something'
+const API_ROOT = 'https://deepfindersfa.azurewebsites.net/api/HttpDeepFindTrigger?code=6bDwaxTAGKSjKk9kCfx2b0SeoT0GrBUS7aClM9Yjz8pYzoGbHLGukg=='
 const MOCK_API_ROOT = 'http://localhost:3004';
 
 const search = async (query, text) => {
@@ -7,7 +7,7 @@ const search = async (query, text) => {
 		return getMockData();
 	};
 
-	const response = await fetch(`${API_ROOT}/searchResults`, {
+	const response = await fetch(`${API_ROOT}`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
