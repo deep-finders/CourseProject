@@ -1,3 +1,13 @@
 {
-    "name": "Azure"
+    "query": "search text",
+    "passages": [
+                { 
+                    "id": "1",
+                    "passage": "This is passage 1 with search text"
+                },
+                { 
+                    "id": "2",
+                    "passage": "This is passage 2"
+                }
+    ]
 }
