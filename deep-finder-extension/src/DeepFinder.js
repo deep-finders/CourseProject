@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import './App.css';
 import ResultsList from './components/ResultsList';
 import SearchForm from './components/SearchForm';
@@ -8,12 +8,10 @@ import { search } from './services/searchService';
 const DeepFinder = () => {
 
   const [isLoading, setIsLoading] = useState(false);
-  // const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
-  const inputRef = useRef();
-
-  const handleDocumentTextRetrieved = async ({
+  const handleDocumentTextRetrieved = useCallback(async ({
     documentHtml,
     documentText,
     documentPTags,
@@ -25,7 +23,7 @@ const DeepFinder = () => {
         documentText,
         documentPTags,
         pageUrl,
-        query: inputRef.current.value,
+        query: searchQuery,
       })
       console.log('(handleDocumentTextRetrieved) results:', results)
 
@@ -36,7 +34,7 @@ const DeepFinder = () => {
       console.error(e);
       setIsLoading(false);
     }
-  }
+  }, [searchQuery])
 
   useEffect(() => {
     const chromeMessageListener = (request, sender) => {
@@ -58,22 +56,19 @@ const DeepFinder = () => {
 
     return () => {
       if (chrome && chrome.runtime) {
-        console.log('Removing chrome runtime listener')
         chrome.runtime.onMessage.removeListener(chromeMessageListener)
       }
     }
-  }, [])
+  }, [handleDocumentTextRetrieved])
 
   const handleClickResult = (result) => {
-    console.log('clicked result:', result);
     if (chrome && chrome.runtime) {
-      chrome.runtime.sendMessage({
-        result
-      })
+      chrome.runtime.sendMessage({ result })
     }
   }
 
-  const handleSearch = async () => {
+  const handleSearch = async (searchQuery) => {
+    setSearchQuery(searchQuery);
     setIsLoading(true);
 
     if (chrome && chrome.tabs) {
@@ -102,12 +97,6 @@ const DeepFinder = () => {
     }
   }
 
-  // const handleUpdateSearchQuery = (e) => {
-  //   console.log('(handleUpdateSearchQuery) searchQuery:', searchQuery);
-  //   console.log('e.target.value:', e.target.value);
-  //   setSearchQuery(e.target.value)
-  // }
-
   return (
     <div className="mx-auto w-96 shadow-lg rounded-sm px-4 py-8">
       <h1 className="text-2xl font-bold tracking-wide mb-8">Deep Finder</h1>
@@ -115,9 +104,6 @@ const DeepFinder = () => {
       <SearchForm
         handleSearch={handleSearch}
         isLoading={isLoading}
-        // searchQuery={searchQuery}
-        // updateSearchQuery={handleUpdateSearchQuery}
-        ref={inputRef}
       />
 
       {searchResults && searchResults.length > 0 && (

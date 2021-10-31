@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { ReactComponent as SearchIcon } from '../icons/search-icon.svg';
 
-const SearchForm = React.forwardRef(({
+const SearchForm = ({
 	handleSearch = () => {},
 	isLoading = false,
-}, ref) => {
+}) => {
+
+	const [searchQuery, setSearchQuery] = useState('');
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		handleSearch();
+		handleSearch(searchQuery);
 	}
 
 	return (
@@ -17,10 +19,11 @@ const SearchForm = React.forwardRef(({
 			<label className="text-sm font-medium text-gray-700 flex flex-col space-y-1">
 				<span>Search</span>
 				<input
-					ref={ref}
 					id="search-query-input"
 					className="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
+					onChange={({ target }) => setSearchQuery(target.value)}
 					type="text"
+					value={searchQuery}
 				/>
 			</label>
 
@@ -34,6 +37,6 @@ const SearchForm = React.forwardRef(({
 			</button>
 		</form>
 	)
-})
+}
 
 export default SearchForm;
