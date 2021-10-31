@@ -2,30 +2,27 @@ import React from 'react';
 
 import { ReactComponent as SearchIcon } from '../icons/search-icon.svg';
 
-const SearchForm = ({
+const SearchForm = React.forwardRef(({
 	handleSearch = () => {},
 	isLoading = false,
-	searchQuery = '',
-	updateSearchQuery = () => {},
-}) => {
+}, ref) => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		handleSearch(searchQuery);
+		handleSearch();
 	}
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
-			<div className="">
-				<label htmlFor="query-input" className="block text-sm font-medium text-gray-700">Search</label>
+			<label className="text-sm font-medium text-gray-700 flex flex-col space-y-1">
+				<span>Search</span>
 				<input
-					name="query-input"
-					id="query-input"
+					ref={ref}
+					id="search-query-input"
 					className="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
-					value={searchQuery}
-					onChange={({ target }) => updateSearchQuery(target.value)}
 				/>
-			</div>
+			</label>
+
 			<button
 				className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 flex flex-nowrap items-center justify-center space-x-2"
 				type="submit"
@@ -36,6 +33,6 @@ const SearchForm = ({
 			</button>
 		</form>
 	)
-}
+})
 
 export default SearchForm;

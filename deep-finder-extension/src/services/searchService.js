@@ -1,7 +1,13 @@
 const API_ROOT = 'https://deepfindersfa.azurewebsites.net/api/HttpDeepFindTrigger?code=6bDwaxTAGKSjKk9kCfx2b0SeoT0GrBUS7aClM9Yjz8pYzoGbHLGukg=='
 const MOCK_API_ROOT = 'http://localhost:3004';
 
-const search = async (query, text) => {
+const search = async ({
+	documentHtml,
+	documentText,
+	documentPTags,
+	pageUrl,
+	query,
+}) => {
 
 	if (process.env.NODE_ENV !== 'production') {
 		return getMockData();
@@ -12,7 +18,13 @@ const search = async (query, text) => {
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify({ query, text })
+		body: JSON.stringify({
+			documentHtml,
+			documentText,
+			documentPTags,
+			pageUrl,
+			query,
+		})
 	});
 
 	return response.json();
@@ -20,7 +32,7 @@ const search = async (query, text) => {
 
 const getMockData = async () => {
 
-	const response = await fetch(`${MOCK_API_ROOT}/searchResults`, {
+	const response = await fetch(`${MOCK_API_ROOT}/passages`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
