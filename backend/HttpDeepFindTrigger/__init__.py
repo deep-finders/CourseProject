@@ -3,10 +3,11 @@ import azure.functions as func
 import json
 import metapy
 import pytoml
-
+from multiprocessing import Pool
 import sharedcode.ranker as ranker
 
-def main(req: func.HttpRequest) -> func.HttpResponse:
+#this async tag helps stop some threading issues with metapy
+async def main(req: func.HttpRequest, context) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
     query = req.params.get('query')
@@ -27,13 +28,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         else:
             passages = req_body.get('passages')
 
-    rk = ranker.PassageRanker(query,passages)
-
     if query and len(passages)>0:
+        rk = ranker.PassageRanker(query,passages,context)
         returnstring = rk.process()
         return func.HttpResponse(returnstring)
     else:
         return func.HttpResponse(
-             "This HTTP triggered function executed successfully, but invalid parameters were passed. Pass a name in the query string or in the request body for a personalized response.",
+             "This HTTP triggered function executed successfully, but invalid parameters were passed.",
              status_code=200
         )
