@@ -107,6 +107,8 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--split_by', type=str,
                         help='Denotes how we split the text into sentences in pseudo mode')
     parser.add_argument('-n', '--num_elements', type=int, help='The number of sentences per pseudo paragraph')
+    parser.add_argument('-k', '--k1', type=float, help='The k1 parameter of the BM25 ranker')
+    parser.add_argument('-b', '--b', type=float, help='The b parameter of the BM25 ranker')
 
     args = vars(parser.parse_args())
 
@@ -117,6 +119,8 @@ if __name__ == "__main__":
     mode = 'pseudo'
     split_by = '.'
     num_elements = 1
+    k1 = 1.5
+    b = 0.75
 
     if args['raw_html']:
         raw_html = args['raw_html']
@@ -134,6 +138,10 @@ if __name__ == "__main__":
         split_by = args['split_by']
     if args['num_elements']:
         num_elements = args['num_elements']
+    if args['k1']:
+        k1 = args['k1']
+    if args['b']:
+        b = args['b']
 
     # Build list of paragraphs
     paragraphs = get_paragraphs(raw_html, mode=mode, split_by=split_by, num_elements=num_elements)
@@ -157,13 +165,15 @@ if __name__ == "__main__":
     tokenized_corpus = [doc.split(' ') for doc in paragraphs_clean]
 
     # Initialize BM25 model, currently using default parameters k1=1.5, b=0.75
-    bm25 = BM25Okapi(tokenized_corpus)
+    bm25 = BM25Okapi(tokenized_corpus, k1=k1, b=b)
 
     print("Query: {}".format(query))
     print("Num_Elements: {}".format(num_elements))
     print("Top N: {}".format(top_n))
     print("Mode: {}".format(mode))
     print("Split_By: {}".format(split_by))
+    print("k1: {}".format(k1))
+    print("b: {}".format(b))
 
     # Tokenize query for BM25 retrieval
     tokenized_query = query.split()
