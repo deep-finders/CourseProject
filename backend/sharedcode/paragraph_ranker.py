@@ -1,11 +1,13 @@
 from bs4 import BeautifulSoup
-import urllib.request
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
 from gensim.parsing.preprocessing import STOPWORDS
 from rank_bm25 import *
 import numpy as np
 from goose3 import Goose
+import sys
+import getopt
+import json
 
 
 # Clean stopwords
@@ -40,11 +42,12 @@ def remove_empty_paragraphs(paragraphs):
         if paragraph == '' or paragraph == '\n':
             continue
         cleaned_paragraphs.append(paragraph)
+
     return np.array(cleaned_paragraphs)
 
 
-# Build paragraphs list based on url and mode
-def get_paragraphs(url, mode='pseudo', split_by='.', num_elements=3):
+# Build paragraphs list based on raw html and mode
+def get_paragraphs(raw_html, mode, split_by, num_elements):
     paragraphs = []
 
     # Builds paragraphs from split article based on multiples of num_elements
@@ -52,7 +55,7 @@ def get_paragraphs(url, mode='pseudo', split_by='.', num_elements=3):
 
         # Retrieve the entire cleaned article
         g = Goose()
-        article = g.extract(url=url)
+        article = g.extract(raw_html=raw_html)
         lines = article.cleaned_text.split(split_by)
 
         # Form paragraphs from multiples of num_elements
@@ -69,8 +72,7 @@ def get_paragraphs(url, mode='pseudo', split_by='.', num_elements=3):
 
     # Builds paragraphs from <p> and <td> tags found in the html
     elif mode == 'tag':
-        source = urllib.request.urlopen(url).read()
-        soup = BeautifulSoup(source, 'html.parser')
+        soup = BeautifulSoup(raw_html, 'html.parser')
 
         # Get all <p> tags
         p_tags = soup.findAll('p')
@@ -91,12 +93,50 @@ def get_paragraphs(url, mode='pseudo', split_by='.', num_elements=3):
         return np.array(paragraphs)
 
 
-if __name__ == "__main__":
-    # Url of page
-    # url = 'https://en.wikipedia.org/wiki/Squid_Game'
-    url = 'https://www.pcgamer.com/facebook-new-name-meta/'
+def main(argv):
 
-    paragraphs = get_paragraphs(url, mode='tag')
+    # Read Command Line Arguments
+    if len(argv) < 2:
+        print('-r or --raw_html and -q or --query required')
+        print('./paragraph_ranker -r <raw_html> -q <query> -t [top_n] -m [mode] -s [split_by] -n [num_elements]')
+        sys.exit(-1)
+
+    options = "hr:q:t:m:s:n:"
+    long_options = ['help', 'raw_html = ', 'query =', 'top_n =', 'mode =', 'split_by =', 'num_elements =']
+
+    raw_html = ''
+    query = ''
+    top_n = 10
+    mode = 'pseudo'
+    split_by = '.'
+    num_elements = 1
+
+    try:
+        args, values = getopt.getopt(argv, options, long_options)
+
+        for curr_arg, curr_val in args:
+            if curr_arg in ('-h', '--help'):
+                print('./paragraph_ranker -r <raw_html> -q <query> -t [top_n] -m [mode] -s [split_by] -n [num_elements]')
+                sys.exit(2)
+            elif curr_arg in ('-r', '--raw_html'):
+                raw_html = curr_val
+            elif curr_arg in ('-q', '--query'):
+                query = curr_val
+            elif curr_arg in ('-t', '--top_n'):
+                top_n = int(curr_val)
+            elif curr_arg in ('-m', '--mode'):
+                mode = curr_val
+            elif curr_arg in ('-s', '--split_by'):
+                split_by = curr_val
+            elif curr_arg in ('-n', '--num_elements'):
+                num_elements = int(curr_val)
+
+    except getopt.error as err:
+        print(str(err))
+
+    # Build list of paragraphs
+    paragraphs = get_paragraphs(raw_html, mode=mode, split_by=split_by, num_elements=num_elements)
+    # Remove any empty paragraphs
     paragraphs = remove_empty_paragraphs(paragraphs)
 
     '''
@@ -118,10 +158,11 @@ if __name__ == "__main__":
     # Initialize BM25 model, currently using default parameters k1=1.5, b=0.75
     bm25 = BM25Okapi(tokenized_corpus)
 
-    # Query for retrieval
-    # query = 'prize money'
-    # query = 'dalgona'
-    query = 'why new name?'
+    print("Query: {}".format(query))
+    print("Num_Elements: {}".format(num_elements))
+    print("Top N: {}".format(top_n))
+    print("Mode: {}".format(mode))
+    print("Split_By: {}".format(split_by))
 
     # Tokenize query for BM25 retrieval
     tokenized_query = query.split()
@@ -131,16 +172,29 @@ if __name__ == "__main__":
     print('BM25 Scores:')
     print(doc_scores)
 
-    # N for top n paragraphs to be retrieved
-    n = 5
-
     # Get the top n scores
-    top_n_scores_idx = [score for score in reversed(np.argsort(doc_scores)[-n:])]
+    top_n_scores_idx = [score for score in reversed(np.argsort(doc_scores)[-top_n:])]
 
     # Get the top n paragraphs in their original form
     top_n_docs = paragraphs[top_n_scores_idx]
 
+    results = []
+
     # Print rank and paragraph
     print('Paragraph Rankings:')
     for idx, doc in enumerate(top_n_docs):
-        print('Rank {}: '.format(idx + 1) + doc)
+        doc_dict = {}
+        rank = idx + 1
+        doc_dict['rank'] = rank
+        doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
+        doc_dict['passage'] = doc
+        results.append(doc_dict)
+        print('Rank {}: '.format(rank) + doc)
+
+    json_return = json.dumps(results)
+    print(json_return)
+    return json_return
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
