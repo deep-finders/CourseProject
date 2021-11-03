@@ -1,7 +1,10 @@
 {
   "documentHtml": "<p>Something</p><div><p>Two</p></div>",
   "query": "test query",
-  "maxResults": "10"
+  "maxResults": "10",
+  "mode": "tag",
+  "splitby": ".",
+  "numelements": "1"
 }
 
 
