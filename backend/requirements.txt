@@ -6,3 +6,8 @@ azure-functions
 metapy
 pytoml
 uuid
+rank-bm25
+bs4
+nltk
+gensim
+goose3
