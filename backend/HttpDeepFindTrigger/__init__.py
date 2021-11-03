@@ -20,17 +20,17 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
         else:
             query = req_body.get('query')
 
-    passages = req.params.get('passages')
-    if not passages:
+    documentHtml = req.params.get('documentHtml')
+    if not documentHtml:
         try:
             req_body = req.get_json()
         except ValueError:
             pass
         else:
-            passages = req_body.get('passages')
+            documentHtml = req_body.get('documentHtml')
 
-    if query and len(passages)>0:
-        rk = ranker.PassageRanker(query,passages,context)
+    if query and documentHtml:
+        rk = ranker.PassageRanker(query,documentHtml,context)
 
         returnstring = rk.process()
         return func.HttpResponse(returnstring)

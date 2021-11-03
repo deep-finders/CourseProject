@@ -10,9 +10,22 @@ import azure.functions as func
 
 class PassageRanker:
 
-    def __init__(self,query,passages,context):
+    def __init__(self,query,documentHtml,context):
         self.query = query
-        self.passages = passages
+        
+        #mocked up
+        self.query = "passage"
+        self.passages = list()
+        passage1 = dict()
+        passage1["id"] = 1
+        passage1["passage"] = "This is passage 1"
+        self.passages.append(passage1)
+        passage2 = dict()
+        passage2["id"] = 2
+        passage2["passage"] = "This is passage 2"
+        self.passages.append(passage2)
+
+        self.documentHtml = documentHtml
         self.context = context
         self.tmppath = ""
         self.corpuspath = ""

@@ -6,7 +6,9 @@ from gensim.parsing.preprocessing import STOPWORDS
 from rank_bm25 import *
 import numpy as np
 from goose3 import Goose
+import nltk
 
+nltk.download('punkt')
 
 # Clean stopwords
 def remove_stopwords(paragraphs):

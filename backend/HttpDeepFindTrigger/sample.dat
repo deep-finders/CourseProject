@@ -1,13 +1,7 @@
 {
-    "query": "search text",
-    "passages": [
-                { 
-                    "id": "1",
-                    "passage": "This is passage 1 with search text"
-                },
-                { 
-                    "id": "2",
-                    "passage": "This is passage 2"
-                }
-    ]
+  "documentHtml": "<p>Something</p><div><p>Two</p></div>",
+  "query": "test query",
+  "maxResults": "10"
 }
+
+
