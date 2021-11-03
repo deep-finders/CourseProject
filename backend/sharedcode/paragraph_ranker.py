@@ -56,7 +56,6 @@ def get_paragraphs(raw_html, mode, split_by, num_elements):
         # Retrieve the entire cleaned article
         g = Goose()
         article = g.extract(raw_html=raw_html)
-        # article = g.extract(raw_html=raw_html)
         lines = article.cleaned_text.split(split_by)
 
         # Form paragraphs from multiples of num_elements
