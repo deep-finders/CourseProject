@@ -6,12 +6,9 @@ from rank_bm25 import *
 import numpy as np
 from goose3 import Goose
 import sys
-import getopt
 import json
-import nltk
+import argparse
 
-
-nltk.download('punkt')
 
 # Clean stopwords
 def remove_stopwords(paragraphs):
@@ -59,6 +56,7 @@ def get_paragraphs(raw_html, mode, split_by, num_elements):
         # Retrieve the entire cleaned article
         g = Goose()
         article = g.extract(raw_html=raw_html)
+        # article = g.extract(raw_html=raw_html)
         lines = article.cleaned_text.split(split_by)
 
         # Form paragraphs from multiples of num_elements
@@ -75,6 +73,7 @@ def get_paragraphs(raw_html, mode, split_by, num_elements):
 
     # Builds paragraphs from <p> and <td> tags found in the html
     elif mode == 'tag':
+
         soup = BeautifulSoup(raw_html, 'html.parser')
 
         # Get all <p> tags
@@ -96,17 +95,23 @@ def get_paragraphs(raw_html, mode, split_by, num_elements):
         return np.array(paragraphs)
 
 
-def main(argv):
+if __name__ == "__main__":
 
-    # Read Command Line Arguments
-    if len(argv) < 2:
-        print('-r or --raw_html and -q or --query required')
-        print('./paragraph_ranker -r <raw_html> -q <query> -t [top_n] -m [mode] -s [split_by] -n [num_elements]')
-        sys.exit(-1)
+    # Read command line arguments
+    parser = argparse.ArgumentParser()
 
-    options = "hr:q:t:m:s:n:"
-    long_options = ['help', 'raw_html = ', 'query =', 'top_n =', 'mode =', 'split_by =', 'num_elements =']
+    parser.add_argument('-r', '--raw_html', type=str, required=True,
+                        help='The raw html to return paragraph rankings for')
+    parser.add_argument('-q', '--query', type=str, required=True, help='The query to be searched')
+    parser.add_argument('-t', '--top_n', type=int, help='The number of results returned in the ranking')
+    parser.add_argument('-m', '--mode', type=str, help='The mode we build our paragraphs with (pseudo, tag).')
+    parser.add_argument('-s', '--split_by', type=str,
+                        help='Denotes how we split the text into sentences in pseudo mode')
+    parser.add_argument('-n', '--num_elements', type=int, help='The number of sentences per pseudo paragraph')
 
+    args = vars(parser.parse_args())
+
+    # Default values
     raw_html = ''
     query = ''
     top_n = 10
@@ -114,28 +119,22 @@ def main(argv):
     split_by = '.'
     num_elements = 1
 
-    try:
-        args, values = getopt.getopt(argv, options, long_options)
-
-        for curr_arg, curr_val in args:
-            if curr_arg in ('-h', '--help'):
-                print('./paragraph_ranker -r <raw_html> -q <query> -t [top_n] -m [mode] -s [split_by] -n [num_elements]')
-                sys.exit(2)
-            elif curr_arg in ('-r', '--raw_html'):
-                raw_html = curr_val
-            elif curr_arg in ('-q', '--query'):
-                query = curr_val
-            elif curr_arg in ('-t', '--top_n'):
-                top_n = int(curr_val)
-            elif curr_arg in ('-m', '--mode'):
-                mode = curr_val
-            elif curr_arg in ('-s', '--split_by'):
-                split_by = curr_val
-            elif curr_arg in ('-n', '--num_elements'):
-                num_elements = int(curr_val)
-
-    except getopt.error as err:
-        print(str(err))
+    if args['raw_html']:
+        raw_html = args['raw_html']
+    if args['query']:
+        query = args['query']
+    if args['top_n']:
+        top_n = args['top_n']
+    if args['mode']:
+        if args['mode'] == 'pseudo' or args['mode'] == 'tag':
+            mode = args['mode']
+        else:
+            print('Error: mode must be pseudo or tag')
+            sys.exit(-1)
+    if args['split_by']:
+        split_by = args['split_by']
+    if args['num_elements']:
+        num_elements = args['num_elements']
 
     # Build list of paragraphs
     paragraphs = get_paragraphs(raw_html, mode=mode, split_by=split_by, num_elements=num_elements)
@@ -194,10 +193,8 @@ def main(argv):
         results.append(doc_dict)
         print('Rank {}: '.format(rank) + doc)
 
+    # Create json result and write to output file
     json_return = json.dumps(results)
-    print(json_return)
-    return json_return
 
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+    with open('output/ranking_result.json', 'w') as file:
+        json.dump(json_return, file)
