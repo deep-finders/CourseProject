@@ -8,7 +8,10 @@ from goose3 import Goose
 import sys
 import getopt
 import json
+import nltk
 
+
+nltk.download('punkt')
 
 # Clean stopwords
 def remove_stopwords(paragraphs):
