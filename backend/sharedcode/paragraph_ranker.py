@@ -6,7 +6,6 @@ from rank_bm25 import *
 import numpy as np
 from goose3 import Goose
 import sys
-import getopt
 import json
 import nltk
 import uuid
@@ -121,6 +120,7 @@ class ParagraphRanker:
         # Optional stem paragraphs, doesn't seem to always be an improvement
         # paragraphs_clean = stem_paragraphs(paragraphs_clean)
 
+
         # Tokenize the corpus for BM25 model
         tokenized_corpus = [doc.split(' ') for doc in paragraphs_clean]
 
@@ -173,48 +173,53 @@ class ParagraphRanker:
 
 def main(argv):
     pr=ParagraphRanker()
+    parser.add_argument('-r', '--raw_html', type=str, required=True,
+                        help='The raw html to return paragraph rankings for')
+    parser.add_argument('-q', '--query', type=str, required=True, help='The query to be searched')
+    parser.add_argument('-t', '--top_n', type=int, help='The number of results returned in the ranking')
+    parser.add_argument('-m', '--mode', type=str, help='The mode we build our paragraphs with (pseudo, tag).')
+    parser.add_argument('-s', '--split_by', type=str,
+                        help='Denotes how we split the text into sentences in pseudo mode')
+    parser.add_argument('-n', '--num_elements', type=int, help='The number of sentences per pseudo paragraph')
+    parser.add_argument('-k', '--k1', type=float, help='The k1 parameter of the BM25 ranker')
+    parser.add_argument('-b', '--b', type=float, help='The b parameter of the BM25 ranker')
 
-    # Read Command Line Arguments
-    if len(argv) < 2:
-        print('-r or --raw_html and -q or --query required')
-        print('./paragraph_ranker -r <raw_html> -q <query> -t [top_n] -m [mode] -s [split_by] -n [num_elements]')
-        sys.exit(-1)
+    args = vars(parser.parse_args())
 
-    options = "hr:q:t:m:s:n:"
-    long_options = ['help', 'raw_html = ', 'query =', 'top_n =', 'mode =', 'split_by =', 'num_elements =']
-
+    # Default values
     raw_html = ''
     query = ''
     top_n = 10
     mode = 'pseudo'
     split_by = '.'
     num_elements = 1
+    k1 = 1.5
+    b = 0.75
 
-    try:
-        args, values = getopt.getopt(argv, options, long_options)
-
-        for curr_arg, curr_val in args:
-            if curr_arg in ('-h', '--help'):
-                print('./paragraph_ranker -r <raw_html> -q <query> -t [top_n] -m [mode] -s [split_by] -n [num_elements]')
-                sys.exit(2)
-            elif curr_arg in ('-r', '--raw_html'):
-                raw_html = curr_val
-            elif curr_arg in ('-q', '--query'):
-                query = curr_val
-            elif curr_arg in ('-t', '--top_n'):
-                top_n = int(curr_val)
-            elif curr_arg in ('-m', '--mode'):
-                mode = curr_val
-            elif curr_arg in ('-s', '--split_by'):
-                split_by = curr_val
-            elif curr_arg in ('-n', '--num_elements'):
-                num_elements = int(curr_val)
-
-    except getopt.error as err:
-        print(str(err))
+    if args['raw_html']:
+        raw_html = args['raw_html']
+    if args['query']:
+        query = args['query']
+    if args['top_n']:
+        top_n = args['top_n']
+    if args['mode']:
+        if args['mode'] == 'pseudo' or args['mode'] == 'tag':
+            mode = args['mode']
+        else:
+            print('Error: mode must be pseudo or tag')
+            sys.exit(-1)
+    if args['split_by']:
+        split_by = args['split_by']
+    if args['num_elements']:
+        num_elements = args['num_elements']
+    if args['k1']:
+        k1 = args['k1']
+    if args['b']:
+        b = args['b']
 
     return pr.search(raw_html,query,top_n,mode,split_by,num_elements)
  
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
