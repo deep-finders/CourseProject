@@ -95,7 +95,7 @@ class ParagraphRanker:
 
             return np.array(paragraphs)
 
-    def search(self, raw_html, query, top_n, mode, split_by, num_elements):
+    def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b):
 
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
@@ -123,7 +123,7 @@ class ParagraphRanker:
         tokenized_corpus = [doc.split(' ') for doc in paragraphs_clean]
 
         # Initialize BM25 model, currently using default parameters k1=1.5, b=0.75
-        bm25 = BM25Okapi(tokenized_corpus)
+        bm25 = BM25Okapi(tokenized_corpus, k1=k1, b=b)
 
         print("Query: {}".format(query))
         print("Num_Elements: {}".format(num_elements))
@@ -169,7 +169,7 @@ class ParagraphRanker:
         return json_return
 
 
-def main(argv):
+def main():
     pr = ParagraphRanker()
 
     parser = argparse.ArgumentParser()
@@ -217,8 +217,8 @@ def main(argv):
     if args['b']:
         b = args['b']
 
-    return pr.search(raw_html, query, top_n, mode, split_by, num_elements)
+    return pr.search(raw_html, query, top_n, mode, split_by, num_elements, k1, b)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
