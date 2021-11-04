@@ -1,10 +1,12 @@
 {
-  "documentHtml": "<p>Something</p><div><p>Two</p></div>",
-  "query": "test query",
+  "documentHtml": "<html><p>This is a sentence.</p><p>This is another sentence.</p><p>This sentences is about sports news.</p><p>This sentence is about sporting news.</p></html>",
+  "query": "sporting news",
   "maxResults": "10",
   "mode": "tag",
   "splitby": ".",
-  "numelements": "1"
+  "numelements": "1",
+  "k1" : "1.75",
+  "b" : ".75"
 }
 
 

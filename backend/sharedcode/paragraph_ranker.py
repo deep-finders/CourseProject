@@ -11,6 +11,71 @@ import nltk
 import uuid
 import argparse
 
+        # Builds paragraphs from split article based on multiples of num_elements
+        if mode == 'pseudo':
+
+            # Retrieve the entire cleaned article
+            g = Goose()
+            article = g.extract(raw_html=raw_html)
+            lines = article.cleaned_text.split(split_by)
+
+            # Form paragraphs from multiples of num_elements
+            i = 0
+            while i < len(lines):
+                paragraph = ''
+                sentences = lines[i:i + num_elements]
+                for sentence in sentences:
+                    paragraph += sentence
+                paragraphs.append(paragraph)
+                i += num_elements
+
+            return np.array(paragraphs)
+
+        # Builds paragraphs from <p> and <td> tags found in the html
+        elif mode == 'tag':
+            soup = BeautifulSoup(raw_html, 'html.parser')
+
+            # Get all <p> tags
+            p_tags = soup.findAll('p')
+
+            # Get all <td> tags
+            td_tags = soup.findAll('td')
+
+            # Get inner text of <p> and <td> tags to get list of paragraphs
+            p_paragraphs = [tag.text for tag in p_tags]
+            td_paragraphs = [tag.text for tag in td_tags]
+
+            # Only include <td> paragraphs if available, only <p> paragraphs otherwise
+            if len(td_paragraphs) > 0:
+                paragraphs = p_paragraphs + td_paragraphs
+            else:
+                paragraphs = p_paragraphs
+
+            return np.array(paragraphs)
+    
+    def search(self,raw_html,query,top_n,mode,split_by,num_elements):
+
+        # Build list of paragraphs
+        paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
+        # Remove any empty paragraphs
+        paragraphs = self.remove_empty_paragraphs(paragraphs)
+
+        #clean up a couple parameters
+        top_n = int(top_n)
+        num_elements = int(num_elements)
+
+        '''
+        Observation: num_elements in pseudo mode should be adjusted such that 
+        len(paragraphs) > n where n is the number of relevant paragraphs returned 
+        by the ranker.
+        '''
+        print('Number of paragraphs: {}'.format(len(paragraphs)))
+
+        # Remove stop words from paragraphs
+        paragraphs_clean = self.remove_stopwords(paragraphs)
+
+        # Optional stem paragraphs, doesn't seem to always be an improvement
+        # paragraphs_clean = stem_paragraphs(paragraphs_clean)
 
 class ParagraphRanker:
     def __init__(self):

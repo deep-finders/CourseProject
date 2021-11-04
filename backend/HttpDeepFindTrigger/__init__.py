@@ -61,6 +61,22 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
             pass
         else:
             numelements = req_body.get('numelements')                                   
+    k1 = req.params.get('k1')     
+    if not k1:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            k1 = float(req_body.get('k1'))
+    b = req.params.get('b')     
+    if not b:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            b = float(req_body.get('b'))
 
     if query and documentHtml:
         pr=ranker.ParagraphRanker()
@@ -73,9 +89,13 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
             splitby = "."
         if not numelements:
             numelements=1
+        if not k1:
+            k1=1.5
+        if not b:
+            b=.75
 
         #may need to reorganize this
-        returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements)
+        returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b)
         return func.HttpResponse(returnstring)
     else:
         return func.HttpResponse(
