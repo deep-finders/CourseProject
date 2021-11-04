@@ -9,13 +9,15 @@ import sys
 import json
 import nltk
 import uuid
+import argparse
+
 
 class ParagraphRanker:
     def __init__(self):
         nltk.download('punkt')
-    
+
     # Clean stopwords
-    def remove_stopwords(self,paragraphs):
+    def remove_stopwords(self, paragraphs):
         sw_removed_paragraphs = list()
         for paragraph in paragraphs:
             paragraph_tokens = word_tokenize(paragraph)
@@ -25,9 +27,8 @@ class ParagraphRanker:
 
         return sw_removed_paragraphs
 
-
     # Stem paragraphs
-    def stem_paragraphs(self,paragraphs):
+    def stem_paragraphs(self, paragraphs):
         ps = PorterStemmer()
         stemmed_paragraphs = list()
         for paragraph in paragraphs:
@@ -38,9 +39,8 @@ class ParagraphRanker:
 
         return stemmed_paragraphs
 
-
     # Remove empty paragraphs and new lines only paragraphs
-    def remove_empty_paragraphs(self,paragraphs):
+    def remove_empty_paragraphs(self, paragraphs):
         cleaned_paragraphs = list()
         for paragraph in paragraphs:
             if paragraph == '' or paragraph == '\n':
@@ -49,9 +49,8 @@ class ParagraphRanker:
 
         return np.array(cleaned_paragraphs)
 
-
     # Build paragraphs list based on raw html and mode
-    def get_paragraphs(self,raw_html, mode, split_by, num_elements):
+    def get_paragraphs(self, raw_html, mode, split_by, num_elements):
         paragraphs = []
 
         # Builds paragraphs from split article based on multiples of num_elements
@@ -95,15 +94,15 @@ class ParagraphRanker:
                 paragraphs = p_paragraphs
 
             return np.array(paragraphs)
-    
-    def search(self,raw_html,query,top_n,mode,split_by,num_elements):
+
+    def search(self, raw_html, query, top_n, mode, split_by, num_elements):
 
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
         # Remove any empty paragraphs
         paragraphs = self.remove_empty_paragraphs(paragraphs)
 
-        #clean up a couple parameters
+        # clean up a couple parameters
         top_n = int(top_n)
         num_elements = int(num_elements)
 
@@ -119,7 +118,6 @@ class ParagraphRanker:
 
         # Optional stem paragraphs, doesn't seem to always be an improvement
         # paragraphs_clean = stem_paragraphs(paragraphs_clean)
-
 
         # Tokenize the corpus for BM25 model
         tokenized_corpus = [doc.split(' ') for doc in paragraphs_clean]
@@ -142,8 +140,8 @@ class ParagraphRanker:
         print(doc_scores)
 
         # adjust top docs based on number of docs
-        if len(tokenized_corpus)<top_n:
-            top_n=len(tokenized_corpus)
+        if len(tokenized_corpus) < top_n:
+            top_n = len(tokenized_corpus)
 
         # Get the top n scores
         top_n_scores_idx = [score for score in reversed(np.argsort(doc_scores)[-top_n:])]
@@ -162,7 +160,7 @@ class ParagraphRanker:
             doc_dict['rank'] = rank
             doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
             doc_dict['passage'] = doc
-            if  doc_dict['score']>0:
+            if doc_dict['score'] > 0:
                 results.append(doc_dict)
             print('Rank {}: '.format(rank) + doc)
 
@@ -172,7 +170,9 @@ class ParagraphRanker:
 
 
 def main(argv):
-    pr=ParagraphRanker()
+    pr = ParagraphRanker()
+
+    parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--raw_html', type=str, required=True,
                         help='The raw html to return paragraph rankings for')
     parser.add_argument('-q', '--query', type=str, required=True, help='The query to be searched')
@@ -217,9 +217,8 @@ def main(argv):
     if args['b']:
         b = args['b']
 
-    return pr.search(raw_html,query,top_n,mode,split_by,num_elements)
- 
+    return pr.search(raw_html, query, top_n, mode, split_by, num_elements)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
