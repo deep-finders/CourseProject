@@ -136,3 +136,7 @@ __azurite_db*__.json
 
 # PyCharm
 .idea/
+
+# VSCode
+local.settings.json
+.vscode/

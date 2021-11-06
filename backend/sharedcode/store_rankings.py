@@ -6,7 +6,7 @@ import azure.cosmos.cosmos_client as cosmos_client
 import azure.cosmos.errors as errors
 
 COSMOS_HOST = 'https://deepfinderdb.documents.azure.com:443/'
-MASTER_KEY = 'suEVi72SUzWzIVB6n1IIU5PmZfZ5ZZbVLj7yO3pDZ41Avw36NmqeVU3Li4NUsNjWAqpovXHhJ9FvDtLFh1AWiw=='
+MASTER_KEY = os.environ['cosmoskey']
 DATABASE_ID = 'DeepFindQueries'
 COLLECTION_ID = 'DeepFindContainer'
 database_link = 'dbs/' + DATABASE_ID

@@ -10,7 +10,18 @@ import json
 import nltk
 import uuid
 import argparse
-from .store_rankings import RankerDAL
+import os
+
+try:
+    isfunction = os.environ["isfunction"]
+except:
+    isfunction = 'false'
+if isfunction=='true':
+    import sharedcode.store_rankings as store_rankings
+else:
+    import store_rankings as store_rankings
+
+
 import logging
 
 class ParagraphRanker:
