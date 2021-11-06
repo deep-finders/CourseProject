@@ -119,7 +119,7 @@ class ParagraphRanker:
         rankings["results"] = results
 
         try:
-            dal = RankerDAL()
+            dal = store_rankings.RankerDAL()
             dal.store_rankings(rankings_id,rankings)
         except:
             logging.info('Error storing results in CosmosDB')
