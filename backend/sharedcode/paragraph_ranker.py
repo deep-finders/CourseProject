@@ -96,15 +96,15 @@ class ParagraphRanker:
 
             return np.array(paragraphs)
 
-    def store_rankings(self,raw_html,results):
+    def store_rankings(self,query,results):
         #add a field to set the recommendation
         for result in results:
-            result['feedback']='-'
+            result['feedback']='0'
 
         rankings = dict()
         rankings_id = str(uuid.uuid4())
         rankings["id"] = rankings_id
-        rankings["raw_html"] = raw_html
+        rankings["query"] = query
         rankings["results"] = results
 
         try:
@@ -184,7 +184,7 @@ class ParagraphRanker:
             print('Rank {}: '.format(rank) + doc)
 
         json_return = json.dumps(results)
-        self.store_rankings(raw_html,results)
+        self.store_rankings(query,results)
 
         print(json_return)
         return json_return
