@@ -10,7 +10,7 @@ import json
 import nltk
 import uuid
 import argparse
-import sharedcode.store_rankings as store_rankings
+from .store_rankings import RankerDAL
 import logging
 
 class ParagraphRanker:
@@ -108,7 +108,7 @@ class ParagraphRanker:
         rankings["results"] = results
 
         try:
-            dal = store_rankings.RankerDAL()
+            dal = RankerDAL()
             dal.store_rankings(rankings_id,rankings)
         except:
             logging.info('Error storing results in CosmosDB')
