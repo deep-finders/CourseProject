@@ -190,8 +190,8 @@ class ParagraphRanker:
             doc_dict['rank'] = rank
             doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
             doc_dict['passage'] = doc
-            if doc_dict['score'] > 0:
-                results.append(doc_dict)
+ #           if doc_dict['score'] > 0:
+            results.append(doc_dict)
             print('Rank {}: '.format(rank) + doc)
 
         json_return = json.dumps(results)
