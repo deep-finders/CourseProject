@@ -68,7 +68,9 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
         except ValueError:
             pass
         else:
-            k1 = float(req_body.get('k1'))
+            k1 = req_body.get('k1')
+            if k1:
+                k1 = float(k1)
     b = req.params.get('b')     
     if not b:
         try:
@@ -76,7 +78,9 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
         except ValueError:
             pass
         else:
-            b = float(req_body.get('b'))
+            b = req_body.get('b')
+            if b:
+                b = float(b)            
 
     if query and documentHtml:
         pr=ranker.ParagraphRanker()
