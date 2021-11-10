@@ -16,13 +16,13 @@ try:
     isfunction = os.environ["isfunction"]
 except:
     isfunction = 'false'
-if isfunction=='true':
+if isfunction == 'true':
     import sharedcode.store_rankings as store_rankings
 else:
     import store_rankings as store_rankings
 
-
 import logging
+
 
 class ParagraphRanker:
     def __init__(self):
@@ -50,6 +50,12 @@ class ParagraphRanker:
             stemmed_paragraphs.append(stemmed_paragraph)
 
         return stemmed_paragraphs
+
+    def stem_query(self, query):
+        ps = PorterStemmer()
+        query_tokens = word_tokenize(query)
+        stemmed_tokens = [ps.stem(word) for word in query_tokens]
+        return ' '.join(stemmed_tokens)
 
     # Remove empty paragraphs and new lines only paragraphs
     def remove_empty_paragraphs(self, paragraphs):
@@ -107,10 +113,10 @@ class ParagraphRanker:
 
             return np.array(paragraphs)
 
-    def store_rankings(self,query,results):
-        #add a field to set the recommendation
+    def store_rankings(self, query, results):
+        # add a field to set the recommendation
         for result in results:
-            result['feedback']='0'
+            result['feedback'] = '0'
 
         rankings = dict()
         rankings_id = str(uuid.uuid4())
@@ -120,12 +126,11 @@ class ParagraphRanker:
 
         try:
             dal = store_rankings.RankerDAL()
-            dal.store_rankings(rankings_id,rankings)
+            dal.store_rankings(rankings_id, rankings)
         except:
             logging.info('Error storing results in CosmosDB')
 
-
-    def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b):
+    def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem):
 
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
@@ -147,7 +152,9 @@ class ParagraphRanker:
         paragraphs_clean = self.remove_stopwords(paragraphs)
 
         # Optional stem paragraphs, doesn't seem to always be an improvement
-        # paragraphs_clean = stem_paragraphs(paragraphs_clean)
+        if stem == 'Y' or stem == 'y':
+            paragraphs_clean = self.stem_paragraphs(paragraphs_clean)
+            query = self.stem_query(query)
 
         # Tokenize the corpus for BM25 model
         tokenized_corpus = [doc.split(' ') for doc in paragraphs_clean]
@@ -190,12 +197,11 @@ class ParagraphRanker:
             doc_dict['rank'] = rank
             doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
             doc_dict['passage'] = doc
- #           if doc_dict['score'] > 0:
             results.append(doc_dict)
             print('Rank {}: '.format(rank) + doc)
 
         json_return = json.dumps(results)
-        self.store_rankings(query,results)
+        self.store_rankings(query, results)
 
         print(json_return)
         return json_return
@@ -215,6 +221,7 @@ def main():
     parser.add_argument('-n', '--num_elements', type=int, help='The number of sentences per pseudo paragraph')
     parser.add_argument('-k', '--k1', type=float, help='The k1 parameter of the BM25 ranker')
     parser.add_argument('-b', '--b', type=float, help='The b parameter of the BM25 ranker')
+    parser.add_argument('-c', '--stem', type=str, help='Determines if the text is stemmed or not. Possible values: (Y, y, N,n)')
 
     args = vars(parser.parse_args())
 
@@ -227,7 +234,7 @@ def main():
     num_elements = 1
     k1 = 1.5
     b = 0.75
-
+    stem = 'N'
     if args['raw_html']:
         raw_html = args['raw_html']
     if args['query']:
@@ -248,8 +255,10 @@ def main():
         k1 = args['k1']
     if args['b']:
         b = args['b']
+    if args['stem'] == 'Y' or args['stem'] == 'y':
+        stem = args['stem']
 
-    return pr.search(raw_html, query, top_n, mode, split_by, num_elements, k1, b)
+    return pr.search(raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem)
 
 
 if __name__ == "__main__":
