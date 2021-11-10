@@ -9,8 +9,10 @@
 /coverage
 
 # production
-/build*
-/dist*
+/deep-finder-extension/build
+/deep-finder-extension/dist
+/build
+/dist
 
 # misc
 .DS_Store
