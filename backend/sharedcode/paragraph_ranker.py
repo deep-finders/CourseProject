@@ -113,7 +113,7 @@ class ParagraphRanker:
 
             return np.array(paragraphs)
 
-    def store_rankings(self, query, results):
+    def store_rankings(self, query, results, raw_html):
         # add a field to set the recommendation
         for result in results:
             result['feedback'] = '0'
@@ -123,6 +123,7 @@ class ParagraphRanker:
         rankings["id"] = rankings_id
         rankings["query"] = query
         rankings["results"] = results
+        rankings["documentHtml"] = raw_html
 
         try:
             dal = store_rankings.RankerDAL()
@@ -201,7 +202,7 @@ class ParagraphRanker:
             print('Rank {}: '.format(rank) + doc)
 
         json_return = json.dumps(results)
-        self.store_rankings(query, results)
+        self.store_rankings(query, results, raw_html)
 
         print(json_return)
         return json_return
