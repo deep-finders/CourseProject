@@ -20,7 +20,14 @@ class RankerDAL:
     client = cosmos_client.CosmosClient(COSMOS_HOST, MASTER_KEY)
     database = client.get_database_client(DATABASE_ID)
     container = database.get_container_client(COLLECTION_ID)
-    container.create_item(rankings,id)
+    #Cosmos DB has a 2MB limit.  We should put in Azure storage, but for the purposes of this
+    #project, if it fails, we will remove the documentHtml and try again
+    try:
+      container.create_item(rankings,id)
+    except:
+      rankings["documentHtml"]=""
+      container.create_item(rankings,id)
+
   
   def update_feedback(self,result_id,feedback):
     client = cosmos_client.CosmosClient(COSMOS_HOST, MASTER_KEY)
