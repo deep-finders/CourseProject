@@ -40,3 +40,12 @@ class RankerDAL:
           if(result["id"]==result_id):
             result['feedback']=feedback
             container.upsert_item(doc)
+
+  def get_testset(self):
+    client = cosmos_client.CosmosClient(COSMOS_HOST, MASTER_KEY)
+    database = client.get_database_client(DATABASE_ID)
+    container = database.get_container_client(COLLECTION_ID)
+    
+    docs = container.query_items(query="Select c.query, c.documentHtml, c.results from c join r in c.results where c.documentHtml <> '' and r.feedback = '1'",enable_cross_partition_query=True)
+    return docs
+   
