@@ -1,21 +1,30 @@
 /* eslint-disable no-undef */
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
+
 import './App.css';
 import ResultsList from './components/ResultsList';
 import SearchForm from './components/SearchForm';
 import { search } from './services/searchService';
+
+
+const SELECT_RESULT = 'select_result';
+const REQUEST_PAGE = 'request_page';
+const SEND_PAGE = 'send_page';
 
 const DeepFinder = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedPassageRank, setSelectedPassageRank] = useState();
+  const [port, setPort] = useState();
 
   const handleDocumentTextRetrieved = useCallback(async ({
     documentHtml,
     documentText,
     documentPTags,
     pageUrl,
+    query,
   }) => {
     try {
       const results = await search({
@@ -23,10 +32,8 @@ const DeepFinder = () => {
         documentText,
         documentPTags,
         pageUrl,
-        query: searchQuery,
+        query,
       })
-      console.log('(handleDocumentTextRetrieved) results:', results)
-
       setIsLoading(false);
       setSearchResults(results);
 
@@ -34,67 +41,45 @@ const DeepFinder = () => {
       console.error(e);
       setIsLoading(false);
     }
-  }, [searchQuery])
+  }, [])
 
   useEffect(() => {
-    const chromeMessageListener = (request, sender) => {
-      console.info('request:', request);
-      console.info('sender:', sender);
-      const { documentHtml, documentText, documentPTags } = request;
+    const chromeMessageListener = ({ action, payload}) => {
 
-      handleDocumentTextRetrieved({
-        documentHtml,
-        documentText,
-        documentPTags,
-        pageUrl: sender.url,
-      })
+      if (action === SEND_PAGE) {
+        handleDocumentTextRetrieved({ ...payload })
+      }
     }
 
-    if (chrome && chrome.runtime) {
-      chrome.runtime.onMessage.addListener(chromeMessageListener)
+    async function setupConnection() {
+      if (chrome && chrome.runtime) {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const connection = chrome.tabs.connect(tab.id, { name: 'deep-finder' });
+        connection.onMessage.addListener(chromeMessageListener);
+        setPort(connection);
+      }
     }
+
+    setupConnection();
 
     return () => {
-      if (chrome && chrome.runtime) {
-        chrome.runtime.onMessage.removeListener(chromeMessageListener)
-      }
+      port && port.disconnect();
     }
   }, [handleDocumentTextRetrieved])
 
   const handleClickResult = (result) => {
-    if (chrome && chrome.runtime) {
-      chrome.runtime.sendMessage({ result })
-    }
+    setSelectedPassageRank(result.rank);
+    port && port.postMessage({
+      action: SELECT_RESULT,
+      payload: result,
+    })
   }
 
-  const handleSearch = async (searchQuery) => {
-    setSearchQuery(searchQuery);
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
     setIsLoading(true);
 
-    if (chrome && chrome.tabs) {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        function: () => {
-          chrome.runtime.sendMessage({
-            documentHtml: document.body.innerHTML,
-            documentText: document.body.innerText,
-            documentPTags: Array.from(document.querySelectorAll("p")).map(p => p.innerHTML),
-          });
-
-          chrome.runtime.onMessage.addListener((request, sender) => {
-            console.log('(webpage) request:', request);
-            console.log('(webpage) sender:', sender);
-          })
-        }
-      })
-    } else {
-      handleDocumentTextRetrieved({
-        documentHtml: document.body.innerHTML,
-        documentText: document.body.innerText,
-        documentPTags: document.querySelectorAll("p"),
-      }, '');
-    }
+    port.postMessage({ action: REQUEST_PAGE, payload: { query }});
   }
 
   return (
@@ -110,6 +95,7 @@ const DeepFinder = () => {
         <ResultsList
           handleClickResult={handleClickResult}
           searchResults={searchResults}
+          selectedPassageRank={selectedPassageRank}
         />
       )}
     </div>

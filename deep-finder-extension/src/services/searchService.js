@@ -20,9 +20,12 @@ const search = async ({
 		},
 		body: JSON.stringify({
 			documentHtml,
-			documentText,
-			documentPTags,
-			pageUrl,
+			maxResults: "10",
+			mode: "tag",
+			splitby: ".",
+			numelements: "1",
+			k1 : "1.75",
+			b: ".75",
 			query,
 		})
 	});

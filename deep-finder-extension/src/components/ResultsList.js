@@ -4,6 +4,7 @@ import SearchResult from './SearchResult';
 const ResultsList = ({
 	handleClickResult = () => {},
 	searchResults = [],
+	selectedPassageRank,
 }) => {
 
 	return (
@@ -18,7 +19,9 @@ const ResultsList = ({
 				{searchResults.map((searchResult, index) => (
 					<SearchResult
 						handleClickResult={handleClickResult}
-						searchResult={searchResult} key={`search-result-${index}`}
+						searchResult={searchResult}
+						key={`search-result-${index}`}
+						isSelected={selectedPassageRank === searchResult.rank}
 					/>
 				))}
 			</section>
