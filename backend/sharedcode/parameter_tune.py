@@ -119,7 +119,6 @@ def main():
     df_results.to_csv("backend/sharedcode/output/results.csv")
 
 
-
 if __name__ == "__main__":
     main()
 
