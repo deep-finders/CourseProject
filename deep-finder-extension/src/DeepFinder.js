@@ -45,6 +45,7 @@ const DeepFinder = () => {
 
   useEffect(() => {
     const chromeMessageListener = ({ action, payload}) => {
+      console.info('Handing message:', { action, payload });
 
       if (action === SEND_PAGE) {
         handleDocumentTextRetrieved({ ...payload })

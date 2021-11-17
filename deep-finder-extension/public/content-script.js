@@ -21,6 +21,7 @@ function handleHighlightPassage(result) {
 }
 
 function handleOnMessage({ action, payload }, port) {
+	console.info('Handing message:', { action, payload });
 	switch (action) {
 		case SELECT_RESULT: {
 			handleHighlightPassage(payload);
@@ -46,7 +47,7 @@ function handleOnMessage({ action, payload }, port) {
 	}
 }
 
-function markDocument(passage) => {
+function markDocument(passage) {
 	const markJs = new Mark(document.querySelector("body"));
 	markJs.mark(passage)
 }

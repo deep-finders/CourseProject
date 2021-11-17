@@ -3,9 +3,6 @@ const MOCK_API_ROOT = 'http://localhost:3004';
 
 const search = async ({
 	documentHtml,
-	documentText,
-	documentPTags,
-	pageUrl,
 	query,
 }) => {
 
@@ -20,12 +17,12 @@ const search = async ({
 		},
 		body: JSON.stringify({
 			documentHtml,
-			maxResults: "10",
-			mode: "tag",
-			splitby: ".",
-			numelements: "1",
-			k1 : "1.75",
-			b: ".75",
+			// maxResults: "10",
+			// mode: "tag",
+			// splitby: ".",
+			// numelements: "1",
+			// k1 : "1.75",
+			// b: ".75",
 			query,
 		})
 	});
