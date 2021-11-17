@@ -85,8 +85,8 @@ def main():
     testset = list(testset)
 
     ##We'll vary b from 0 to 1 and k from 0 to 3 and for modes pseudo and tag
-    bsplits = 1
-    k1splits = 3
+    bsplits = 10
+    k1splits = 30
 
     tag_list = {'pseudo', 'tag'}
     b_list = np.linspace(0,1,bsplits)   
