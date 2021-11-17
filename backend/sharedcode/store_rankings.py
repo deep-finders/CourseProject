@@ -35,6 +35,7 @@ class RankerDAL:
     container = database.get_container_client(COLLECTION_ID)
     
     docs = container.query_items(query="SELECT c.id,c.query,c.results,c.documentHtml FROM c join r in c.results where r.id='"+ result_id + "'",enable_cross_partition_query=True)
+
     for doc in docs:
       for result in doc["results"]:
           if(result["id"]==result_id):
