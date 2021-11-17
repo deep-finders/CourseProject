@@ -22,7 +22,9 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
     maxResults = req_body.get('maxResults')
     mode = req_body.get('mode')
     splitby = req_body.get('splitby')   
-    numelements = req_body.get('numelements')                                   
+    numelements = req_body.get('numelements')       
+    if numelements:
+        numelements= int(numelements)                            
     k1 = req_body.get('k1')
     if k1:
         k1 = float(k1)
@@ -49,11 +51,16 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
         if not stem:
             stem  = "Y"
 
-        #may need to reorganize this
-        returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b,stem)
-        return func.HttpResponse(returnstring)
+        try:
+            returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b,stem)
+            statuscode = 200
+        except Exception as e:
+            returnstring = str(e)
+            statuscode = 500
+        
+        return func.HttpResponse(returnstring, status_code=statuscode)
     else:
         return func.HttpResponse(
              "This HTTP triggered function executed successfully, but invalid parameters were passed.",
-             status_code=200
+             status_code=500
         )
