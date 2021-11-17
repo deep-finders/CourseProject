@@ -3,9 +3,6 @@
   "description": "Query your document",
   "version": "0.0",
   "manifest_version": 3,
-  "background": {
-    "service_worker": "background.js"
-  },
   "permissions": ["storage", "activeTab", "scripting"],
   "action": {
     "default_popup": "popup.html",
@@ -21,5 +18,12 @@
     "32": "/images/logo32.png",
     "48": "/images/logo48.png",
     "128": "/images/logo128.png"
-  }
+  },
+  "content_scripts": [
+    {
+      "css": ["content-styles.css"],
+      "js": ["mark.min.js", "content-script.js"],
+      "matches": ["*://*/*"]
+    }
+  ]
 }

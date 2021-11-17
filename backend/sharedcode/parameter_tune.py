@@ -9,10 +9,12 @@ def precision(docs):
     return sum(docs) / len(docs) if docs else 0
 
 #avg precision = sum of precision at every document retrieved/number of relevant documents
+
 def avg_precision(docs):
     vals_to_avg = [precision(docs[:i+1]) for (i, doc) in enumerate(docs) if doc == 1]
 
     return sum(vals_to_avg) / len(vals_to_avg) if vals_to_avg else 0
+
 
 def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
     map = 0
@@ -34,6 +36,7 @@ def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
                 passage = passage.replace(split_by,"")                
                 result_list.append(passage)
 
+
         try:
             new_results = pr.search(raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem)
             new_results = json.loads(new_results)
@@ -44,6 +47,7 @@ def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
             max_idx = len(new_results) if top_n > len(new_results) else top_n
 
             for i in range(0,max_idx):
+
                 passage = new_results[i]["passage"]
                 passage = passage.replace('\n',"")
                 passage = passage.replace(split_by,"")
@@ -52,7 +56,9 @@ def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
                 else:
                     found_list.append(0)
             
+
             ap_counter = ap_counter + avg_precision(found_list)
+
             count = count+1
         except:
             print('Error calculating search')
@@ -98,6 +104,7 @@ def main():
                 results_dict[(mode,b,k1)] = {'score':results}  
                 tests_executed = tests_executed + 1
                 print('*********** ' + str(tests_executed) + ' of ' + str(num_tests) + ' tests executed. ***********')
+
             
     # Show results
     df_results = pd.DataFrame(results_dict).T.reset_index()
@@ -105,6 +112,7 @@ def main():
     df_results = df_results.sort_values(['score'],ascending=False)    
     print(df_results)
     df_results.to_csv("results.csv")
+
 
 
 if __name__ == "__main__":
