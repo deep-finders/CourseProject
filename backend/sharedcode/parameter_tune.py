@@ -3,6 +3,7 @@ import paragraph_ranker
 import store_rankings
 import pandas as pd
 import json
+import os
 
 #precision calcs modified From https://gist.github.com/eribeiro/4630eb4b5562f38fd478d9694aa41ce2
 def precision(docs):
@@ -84,8 +85,8 @@ def main():
     testset = list(testset)
 
     ##We'll vary b from 0 to 1 and k from 0 to 3 and for modes pseudo and tag
-    bsplits = 10
-    k1splits = 30
+    bsplits = 1
+    k1splits = 3
 
     tag_list = {'pseudo', 'tag'}
     b_list = np.linspace(0,1,bsplits)   
@@ -111,8 +112,11 @@ def main():
     df_results.columns = ['mode','b','k1','score']
     df_results = df_results.sort_values(['score'],ascending=False)    
     print(df_results)
-    df_results.to_csv("results.csv")
-
+    try:
+        os.remove("backend/sharedcode/output/results.csv")
+    except:
+        pass
+    df_results.to_csv("backend/sharedcode/output/results.csv")
 
 
 if __name__ == "__main__":
