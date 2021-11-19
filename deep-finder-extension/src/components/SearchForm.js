@@ -28,11 +28,11 @@ const SearchForm = ({
 			</label>
 
 			<button
-				className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 flex flex-nowrap items-center justify-center space-x-2"
+				className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 flex flex-nowrap items-center justify-center space-x-2 disabled:hover:bg-blue-500 mx-auto"
 				type="submit"
 				disabled={isLoading}
 			>
-				<SearchIcon className="h-5 w-5 fill-current"/>
+				<SearchIcon className="h-5 w-5 fill-current" />
 				<span>Search</span>
 			</button>
 		</form>

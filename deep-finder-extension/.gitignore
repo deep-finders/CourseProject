@@ -10,9 +10,7 @@
 
 # production
 /deep-finder-extension/build
-/deep-finder-extension/dist
 /build
-/dist
 
 # misc
 .DS_Store
