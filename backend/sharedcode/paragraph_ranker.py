@@ -131,6 +131,11 @@ class ParagraphRanker:
         except:
             logging.info('Error storing results in CosmosDB')
 
+    def cleanpassage(self,passage):
+        passage = passage.replace('\n',"")
+        passage = passage.replace('\t',"")
+        return passage
+
     def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem):
 
         # Build list of paragraphs
@@ -197,7 +202,7 @@ class ParagraphRanker:
             doc_dict['id'] = str(uuid.uuid4())
             doc_dict['rank'] = rank
             doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
-            doc_dict['passage'] = doc
+            doc_dict['passage'] = self.cleanpassage(doc)
             results.append(doc_dict)
             print('Rank {}: '.format(rank) + doc)
 

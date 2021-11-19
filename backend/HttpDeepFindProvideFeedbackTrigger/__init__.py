@@ -28,8 +28,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         try:
             dal = store_rankings.RankerDAL()
             dal.update_feedback(result_id,feedback)
-        except:
-            logging.info('Error storing results in CosmosDB')
+        except Exception as e:
+            logging.info('Error storing results in CosmosDB:' + str(e))
         return func.HttpResponse(f"Result updated function executed successfully.")
     else:
         return func.HttpResponse(
