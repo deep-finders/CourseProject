@@ -5,13 +5,13 @@ const SELECT_RESULT = 'select_result';
 const REQUEST_PAGE = 'request_page';
 const SEND_PAGE = 'send_page';
 
+//AI remove or update markJsDefaultConfig
 const markJsDefaultConfig = {
 	acrossElements: true,
 	className: 'highlight',
 	debug: true,
 	element: 'span',
-	ignoreJoiners: true,
-	ignorePunctuation: true,
+	ignoreJoiners: false,
 	separateWordSearch: 'false',
 }
 
@@ -54,11 +54,23 @@ function handleOnMessage({ action, payload }, port) {
 }
 
 function markDocument(passage) {
-	const markJs = new Mark(document.querySelector("body"), markJsDefaultConfig);
-	markJs.mark(passage)
+	const markJs = new Mark(document.querySelector("body"));
+	//Removes previous marks
+	markJs.unmark({ done: function(){
+		//Adds new marks
+		markJs.mark(passage, {
+			"separateWordSearch": false,
+			"debug": true,
+			"acrossElements": true,
+			"className": "highlight",
+			done: function () {
+				//AI Add code to jump to highlighted element
+				//var element = document.getElementsByClassName("highlight")
+				//element.scrollIntoView();
+			}
+		})
+	}})
 }
-
-markDocument("Port lifetime");
 
 if (chrome && chrome.runtime) {
 	chrome.runtime.onConnect.addListener(port => {
