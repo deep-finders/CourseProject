@@ -136,7 +136,7 @@ class ParagraphRanker:
         passage = passage.replace('\t',"")
         return passage
 
-    def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem):
+    def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem, store=True):
 
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
@@ -207,7 +207,8 @@ class ParagraphRanker:
             print('Rank {}: '.format(rank) + doc)
 
         json_return = json.dumps(results)
-        self.store_rankings(query, results, raw_html)
+        if store==True:
+            self.store_rankings(query, results, raw_html)
 
         print(json_return)
         return json_return

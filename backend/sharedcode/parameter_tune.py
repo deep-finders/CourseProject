@@ -39,7 +39,7 @@ def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
 
 
         try:
-            new_results = pr.search(raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem)
+            new_results = pr.search(raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem,store=False)
             new_results = json.loads(new_results)
 
             #now need to build a list of passages in new_results that are in results with feedback = 1
@@ -85,8 +85,8 @@ def main():
     testset = list(testset)
 
     ##We'll vary b from 0 to 1 and k from 0 to 3 and for modes pseudo and tag
-    bsplits = 1
-    k1splits = 3
+    bsplits = 10
+    k1splits = 30
 
     tag_list = {'pseudo', 'tag'}
     b_list = np.linspace(0,1,bsplits)   
