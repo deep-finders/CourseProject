@@ -6,18 +6,24 @@ const REQUEST_PAGE = 'request_page';
 const SEND_PAGE = 'send_page';
 
 const markJsDefaultConfig = {
-	element: 'span',
+	acrossElements: true,
 	className: 'highlight',
+	debug: true,
+	element: 'span',
+	ignoreJoiners: true,
+	ignorePunctuation: true,
+	separateWordSearch: 'false',
 }
 
 /**
- * 
+ *
  * @param {object} result Passage result
  * @param {number} result.id
  * @param {string} result.passage
  */
 function handleHighlightPassage(result) {
 	console.log('selected result:', result);
+	markDocument(result.passage);
 }
 
 function handleOnMessage({ action, payload }, port) {
@@ -48,9 +54,11 @@ function handleOnMessage({ action, payload }, port) {
 }
 
 function markDocument(passage) {
-	const markJs = new Mark(document.querySelector("body"));
+	const markJs = new Mark(document.querySelector("body"), markJsDefaultConfig);
 	markJs.mark(passage)
 }
+
+markDocument("Port lifetime");
 
 if (chrome && chrome.runtime) {
 	chrome.runtime.onConnect.addListener(port => {
