@@ -5,7 +5,7 @@ const SELECT_RESULT = 'select_result';
 const REQUEST_PAGE = 'request_page';
 const SEND_PAGE = 'send_page';
 
-//AI remove or update markJsDefaultConfig
+//AI: remove or update markJsDefaultConfig
 const markJsDefaultConfig = {
 	acrossElements: true,
 	className: 'highlight',
@@ -63,10 +63,19 @@ function markDocument(passage) {
 			"debug": true,
 			"acrossElements": true,
 			"className": "highlight",
+			"accuracy": {
+				"value": "exactly",
+				"limiters": [",", ".","'","\""]
+			},
 			done: function () {
-				//AI Add code to jump to highlighted element
-				//var element = document.getElementsByClassName("highlight")
-				//element.scrollIntoView();
+				//AI: Add code to handle exceptions when no match
+				var elements = document.getElementsByClassName("highlight");
+				var markedElemend = elements[0];
+				markedElemend.scrollIntoView({
+					behavior: 'auto',
+					block: 'center',
+					inline: 'center'
+				});
 			}
 		})
 	}})
