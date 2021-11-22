@@ -5,19 +5,25 @@ const SELECT_RESULT = 'select_result';
 const REQUEST_PAGE = 'request_page';
 const SEND_PAGE = 'send_page';
 
+//AI: remove or update markJsDefaultConfig
 const markJsDefaultConfig = {
-	element: 'span',
+	acrossElements: true,
 	className: 'highlight',
+	debug: true,
+	element: 'span',
+	ignoreJoiners: false,
+	separateWordSearch: 'false',
 }
 
 /**
- * 
+ *
  * @param {object} result Passage result
  * @param {number} result.id
  * @param {string} result.passage
  */
 function handleHighlightPassage(result) {
 	console.log('selected result:', result);
+	markDocument(result.passage);
 }
 
 function handleOnMessage({ action, payload }, port) {
@@ -49,7 +55,30 @@ function handleOnMessage({ action, payload }, port) {
 
 function markDocument(passage) {
 	const markJs = new Mark(document.querySelector("body"));
-	markJs.mark(passage)
+	//Removes previous marks
+	markJs.unmark({ done: function(){
+		//Adds new marks
+		markJs.mark(passage, {
+			"separateWordSearch": false,
+			"debug": true,
+			"acrossElements": true,
+			"className": "highlight",
+			"accuracy": {
+				"value": "exactly",
+				"limiters": [",", ".","'","\""]
+			},
+			done: function () {
+				//AI: Add code to handle exceptions when no match
+				var elements = document.getElementsByClassName("highlight");
+				var markedElemend = elements[0];
+				markedElemend.scrollIntoView({
+					behavior: 'auto',
+					block: 'center',
+					inline: 'center'
+				});
+			}
+		})
+	}})
 }
 
 if (chrome && chrome.runtime) {
