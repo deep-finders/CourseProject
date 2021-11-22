@@ -39,7 +39,7 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
         if not maxResults:
             maxResults = 10
         if not mode:
-            mode = "pseudo"
+            mode = "both"
         if not splitby:
             splitby = "."
         if not numelements:
@@ -52,7 +52,10 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
             stem  = "Y"
 
         try:
-            returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b,stem)
+            if mode == "both":
+                returnstring = pr.searchBoth(documentHtml,query,maxResults,splitby,numelements,k1,b,stem)
+            else:
+                returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b,stem)
             statuscode = 200
         except Exception as e:
             returnstring = str(e)

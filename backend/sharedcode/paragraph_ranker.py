@@ -210,8 +210,30 @@ class ParagraphRanker:
         if store==True:
             self.store_rankings(query, results, raw_html)
 
-        print(json_return)
         return json_return
+
+    #This function will call both the pseudo mode and tag mode and return the best results
+    def searchBoth(self, raw_html, query, top_n, split_by, num_elements, k1, b, stem, store=True):
+
+            tag_results_orig = self.search(raw_html, query, top_n, "tag", split_by, num_elements, k1, b, stem,store=False)
+            tag_results =  json.loads(tag_results_orig)
+            psuedo_results_orig = self.search(raw_html, query, top_n, "pseudo", split_by, num_elements, k1, b, stem,store=False)
+            psuedo_results =  json.loads(psuedo_results_orig)
+            tag_score = 0
+            psuedo_score = 0
+
+            max_idx = len(tag_results) if top_n > len(tag_results) else top_n
+            for i in range(0,max_idx):
+                tag_score = tag_score + float(tag_results[i]['score'])
+
+            max_idx = len(psuedo_results) if top_n > len(psuedo_results) else top_n
+            for i in range(0,max_idx):
+                psuedo_score = psuedo_score + float(psuedo_results[i]['score'])
+
+            if tag_score > psuedo_score:
+                return tag_results_orig 
+            else:
+                return psuedo_results_orig
 
 
 def main():
