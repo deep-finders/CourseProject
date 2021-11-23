@@ -1,5 +1,7 @@
+"""
+    This Azure function provides the ability to pass a feedback indicator to one of the stored search results
+"""
 import logging
-
 import azure.functions as func
 import sharedcode.store_rankings as store_rankings
 
@@ -7,6 +9,9 @@ import sharedcode.store_rankings as store_rankings
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
+    """
+       Both the id and feedback parameters must be passed
+    """
     result_id = req.params.get('id')
     if not result_id:
         try:
@@ -25,6 +30,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             feedback = req_body.get('feedback')
 
     if result_id and feedback:
+        """
+        Instantiate the data access class and call the update feedback function
+        """
         try:
             dal = store_rankings.RankerDAL()
             dal.update_feedback(result_id,feedback)

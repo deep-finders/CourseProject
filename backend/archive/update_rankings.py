@@ -16,6 +16,9 @@ collection_link = database_link + '/colls/' + COLLECTION_ID
 # Use sample bulk SP from here: https://github.com/Azure/azure-cosmosdb-js-server/blob/master/samples/stored-procedures/BulkImport.js
 sproc_link = collection_link + '/sprocs/bulkImport'
 
+"""
+  This logic was crated to test the interactions with CosmosDB
+"""
 
 if __name__ == "__main__":
     result_id = "a2882b88-2bfe-47d4-a84c-9a07cb9cf596"

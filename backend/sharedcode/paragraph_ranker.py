@@ -12,6 +12,8 @@ import uuid
 import argparse
 import os
 
+#Note:  This try catch logic was added to allow the class to be used from the Azure function or from the 
+#       main entry point
 try:
     isfunction = os.environ["isfunction"]
 except:
@@ -23,7 +25,9 @@ else:
 
 import logging
 
-
+"""
+    This class is instantiated by the Azure function to allow the search to be executed
+"""
 class ParagraphRanker:
     def __init__(self):
         nltk.download('punkt')
@@ -112,7 +116,10 @@ class ParagraphRanker:
                 paragraphs = p_paragraphs
 
             return np.array(paragraphs)
-
+    
+    """
+        This is a helper function to store the results for parameter tuning
+    """
     def store_rankings(self, query, results, raw_html):
         # add a field to set the recommendation
         for result in results:
@@ -131,11 +138,17 @@ class ParagraphRanker:
         except:
             logging.info('Error storing results in CosmosDB')
 
+    """
+        This is a helper method to quickly remove some unwanted tags
+    """
     def cleanpassage(self,passage):
         passage = passage.replace('\n',"")
         passage = passage.replace('\t',"")
         return passage
 
+    """
+        This is the main method that will parse the html and call the BM25 ranking function
+    """
     def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem, store=True):
 
         # Build list of paragraphs
@@ -212,12 +225,12 @@ class ParagraphRanker:
 
         return json_return
 
-    #This function will call both the pseudo mode and tag mode and return the best results
+    #This method will call both the pseudo mode and tag mode and return the best results
     def searchBoth(self, raw_html, query, top_n, split_by, num_elements, k1, b, stem, store=True):
 
-            tag_results_orig = self.search(raw_html, query, top_n, "tag", split_by, num_elements, k1, b, stem,store=False)
+            tag_results_orig = self.search(raw_html, query, top_n, "tag", split_by, num_elements, k1, b, stem,store=store)
             tag_results =  json.loads(tag_results_orig)
-            psuedo_results_orig = self.search(raw_html, query, top_n, "pseudo", split_by, num_elements, k1, b, stem,store=False)
+            psuedo_results_orig = self.search(raw_html, query, top_n, "pseudo", split_by, num_elements, k1, b, stem,store=store)
             psuedo_results =  json.loads(psuedo_results_orig)
             tag_score = 0
             psuedo_score = 0
@@ -235,7 +248,9 @@ class ParagraphRanker:
             else:
                 return psuedo_results_orig
 
-
+"""
+    This is not used by the azure functions but is a good way to test the algorithms outside of the cloud deployment
+"""
 def main():
     pr = ParagraphRanker()
 
