@@ -14,6 +14,10 @@ collection_link = database_link + '/colls/' + COLLECTION_ID
 # Use sample bulk SP from here: https://github.com/Azure/azure-cosmosdb-js-server/blob/master/samples/stored-procedures/BulkImport.js
 sproc_link = collection_link + '/sprocs/bulkImport'
 
+"""
+  This class was created to simplify the interactions with Cosmos DB.  It requires that the commoskey is stored in an
+  environment variable
+"""
 class RankerDAL:
 
   def store_rankings(self,id,rankings):
