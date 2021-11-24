@@ -260,6 +260,7 @@ class ParagraphRanker:
                 else:
                     return psuedo_results_orig
 
+
 """
     This is not used by the azure functions but is a good way to test the algorithms outside of the cloud deployment
 """
