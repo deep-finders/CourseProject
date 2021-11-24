@@ -5,6 +5,11 @@ import pandas as pd
 import json
 import os
 
+"""
+  This logic was created to loop through different parameter values and look for the most optimal
+  mode, k1, and b
+"""
+
 #precision calcs modified From https://gist.github.com/eribeiro/4630eb4b5562f38fd478d9694aa41ce2
 def precision(docs):
     return sum(docs) / len(docs) if docs else 0

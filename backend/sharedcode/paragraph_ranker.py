@@ -12,6 +12,8 @@ import uuid
 import argparse
 import os
 
+#Note:  This try catch logic was added to allow the class to be used from the Azure function or from the 
+#       main entry point
 try:
     isfunction = os.environ["isfunction"]
 except:
@@ -23,7 +25,9 @@ else:
 
 import logging
 
-
+"""
+    This class is instantiated by the Azure function to allow the search to be executed
+"""
 class ParagraphRanker:
     def __init__(self):
         nltk.download('punkt')
@@ -112,7 +116,10 @@ class ParagraphRanker:
                 paragraphs = p_paragraphs
 
             return np.array(paragraphs)
-
+    
+    """
+        This is a helper function to store the results for parameter tuning
+    """
     def store_rankings(self, query, results, raw_html):
         # add a field to set the recommendation
         for result in results:
@@ -131,12 +138,21 @@ class ParagraphRanker:
         except:
             logging.info('Error storing results in CosmosDB')
 
+    """
+        This is a helper method to quickly remove some unwanted tags
+    """
     def cleanpassage(self,passage):
         passage = passage.replace('\n',"")
         passage = passage.replace('\t',"")
         return passage
 
+    """
+        This is the main method that will parse the html and call the BM25 ranking function
+    """
     def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem, store=True):
+
+        # Save original query
+        original_query = query
 
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
@@ -197,23 +213,57 @@ class ParagraphRanker:
         # Print rank and paragraph
         print('Paragraph Rankings:')
         for idx, doc in enumerate(top_n_docs):
-            doc_dict = {}
-            rank = idx + 1
-            doc_dict['id'] = str(uuid.uuid4())
-            doc_dict['rank'] = rank
-            doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
-            doc_dict['passage'] = self.cleanpassage(doc)
-            results.append(doc_dict)
-            print('Rank {}: '.format(rank) + doc)
+            #Removing results where BM25 score is 0
+            if doc_scores[top_n_scores_idx[idx]] != 0:
+                doc_dict = {}
+                rank = idx + 1
+                doc_dict['id'] = str(uuid.uuid4())
+                doc_dict['rank'] = rank
+                doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
+                doc_dict['passage'] = self.cleanpassage(doc)
+                results.append(doc_dict)
+                print('Rank {}: '.format(rank) + doc)
 
         json_return = json.dumps(results)
         if store==True:
-            self.store_rankings(query, results, raw_html)
+            self.store_rankings(original_query, results, raw_html)
 
-        print(json_return)
         return json_return
 
+    #This method will call both the pseudo mode and tag mode and return the best results
+    def searchBoth(self, raw_html, query, top_n, split_by, num_elements, k1, b, stem, store=True):
 
+            tag_results_orig = self.search(raw_html, query, top_n, "tag", split_by, num_elements, k1, b, stem,store=store)
+            tag_results =  json.loads(tag_results_orig)
+            psuedo_results_orig = self.search(raw_html, query, top_n, "pseudo", split_by, num_elements, k1, b, stem,store=store)
+            psuedo_results =  json.loads(psuedo_results_orig)
+            tag_score = 0
+            psuedo_score = 0
+            tag_result_found = False
+            pseudo_result_found = False
+
+            max_idx = len(tag_results) if top_n > len(tag_results) else top_n
+            for i in range(0,max_idx):
+                tag_result_found = True
+                tag_score = tag_score + float(tag_results[i]['score'])
+
+            max_idx = len(psuedo_results) if top_n > len(psuedo_results) else top_n
+            for i in range(0,max_idx):
+                pseudo_result_found = True
+                psuedo_score = psuedo_score + float(psuedo_results[i]['score'])
+
+            if tag_result_found == False:
+                return psuedo_results_orig
+            else:
+                if tag_score > psuedo_score:
+                    return tag_results_orig 
+                else:
+                    return psuedo_results_orig
+
+
+"""
+    This is not used by the azure functions but is a good way to test the algorithms outside of the cloud deployment
+"""
 def main():
     pr = ParagraphRanker()
 
