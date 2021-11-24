@@ -151,6 +151,9 @@ class ParagraphRanker:
     """
     def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem, store=True):
 
+        # Save original query
+        original_query = query
+
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
         # Remove any empty paragraphs
@@ -221,7 +224,7 @@ class ParagraphRanker:
 
         json_return = json.dumps(results)
         if store==True:
-            self.store_rankings(query, results, raw_html)
+            self.store_rankings(original_query, results, raw_html)
 
         return json_return
 
