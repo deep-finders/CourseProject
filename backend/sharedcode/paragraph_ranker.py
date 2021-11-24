@@ -213,14 +213,16 @@ class ParagraphRanker:
         # Print rank and paragraph
         print('Paragraph Rankings:')
         for idx, doc in enumerate(top_n_docs):
-            doc_dict = {}
-            rank = idx + 1
-            doc_dict['id'] = str(uuid.uuid4())
-            doc_dict['rank'] = rank
-            doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
-            doc_dict['passage'] = self.cleanpassage(doc)
-            results.append(doc_dict)
-            print('Rank {}: '.format(rank) + doc)
+            #Removing results where BM25 score is 0
+            if doc_scores[top_n_scores_idx[idx]] != 0:
+                doc_dict = {}
+                rank = idx + 1
+                doc_dict['id'] = str(uuid.uuid4())
+                doc_dict['rank'] = rank
+                doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
+                doc_dict['passage'] = self.cleanpassage(doc)
+                results.append(doc_dict)
+                print('Rank {}: '.format(rank) + doc)
 
         json_return = json.dumps(results)
         if store==True:
@@ -237,19 +239,26 @@ class ParagraphRanker:
             psuedo_results =  json.loads(psuedo_results_orig)
             tag_score = 0
             psuedo_score = 0
+            tag_result_found = False
+            pseudo_result_found = False
 
             max_idx = len(tag_results) if top_n > len(tag_results) else top_n
             for i in range(0,max_idx):
+                tag_result_found = True
                 tag_score = tag_score + float(tag_results[i]['score'])
 
             max_idx = len(psuedo_results) if top_n > len(psuedo_results) else top_n
             for i in range(0,max_idx):
+                pseudo_result_found = True
                 psuedo_score = psuedo_score + float(psuedo_results[i]['score'])
 
-            if tag_score > psuedo_score:
-                return tag_results_orig 
-            else:
+            if tag_result_found == False:
                 return psuedo_results_orig
+            else:
+                if tag_score > psuedo_score:
+                    return tag_results_orig 
+                else:
+                    return psuedo_results_orig
 
 """
     This is not used by the azure functions but is a good way to test the algorithms outside of the cloud deployment
