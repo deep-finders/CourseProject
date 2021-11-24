@@ -32,6 +32,8 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
     query = req_body.get('query')
     documentHtml = req_body.get('documentHtml')
     maxResults = req_body.get('maxResults')
+    if maxResults:
+        maxResults = int(maxResults)    
     mode = req_body.get('mode')
     splitby = req_body.get('splitby')   
     numelements = req_body.get('numelements')       
