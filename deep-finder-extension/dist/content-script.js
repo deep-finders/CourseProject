@@ -63,10 +63,10 @@ function markDocument(passage) {
 			"debug": true,
 			"acrossElements": true,
 			"className": "highlight",
-			"accuracy": {
-				"value": "exactly",
-				"limiters": [",", ".","'","\""]
-			},
+			//"accuracy": {
+			//	"value": "exactly",
+			//	"limiters": [",", ".","'","\""]
+			//},
 			done: function () {
 				//AI: Add code to handle exceptions when no match
 				var elements = document.getElementsByClassName("highlight");
