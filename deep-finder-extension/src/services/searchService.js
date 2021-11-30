@@ -26,7 +26,6 @@ const search = async ({
 			query,
 		})
 	});
-
 	return response.json();
 }
 
