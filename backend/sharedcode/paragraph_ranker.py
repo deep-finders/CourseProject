@@ -79,9 +79,11 @@ class ParagraphRanker:
         if mode == 'pseudo':
 
             # Retrieve the entire cleaned article
+            logging.info('Calling goose with splityby="{}"'.format(split_by))
             g = Goose()
             article = g.extract(raw_html=raw_html)
             lines = article.cleaned_text.split(split_by)
+            logging.info('Number of lines in pseudo mode: {}'.format(len(lines)))
 
             # Form paragraphs from multiples of num_elements
             i = 0
@@ -156,6 +158,8 @@ class ParagraphRanker:
 
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
+        logging.info('Number of paragraphs after get_paragraphs: {}'.format(len(paragraphs)))     
+
         # Remove any empty paragraphs
         paragraphs = self.remove_empty_paragraphs(paragraphs)
 
@@ -169,6 +173,7 @@ class ParagraphRanker:
         by the ranker.
         '''
         print('Number of paragraphs: {}'.format(len(paragraphs)))
+        logging.info('Number of paragraphs: {}'.format(len(paragraphs)))
 
         # Remove stop words from paragraphs
         paragraphs_clean = self.remove_stopwords(paragraphs)
@@ -181,48 +186,48 @@ class ParagraphRanker:
         # Tokenize the corpus for BM25 model
         tokenized_corpus = [doc.split(' ') for doc in paragraphs_clean]
 
-        # Initialize BM25 model, currently using default parameters k1=1.5, b=0.75
-        bm25 = BM25Okapi(tokenized_corpus, k1=k1, b=b)
-
-        print("Query: {}".format(query))
-        print("Num_Elements: {}".format(num_elements))
-        print("Top N: {}".format(top_n))
-        print("Mode: {}".format(mode))
-        print("Split_By: {}".format(split_by))
-
-        # Tokenize query for BM25 retrieval
-        tokenized_query = query.split()
-
-        # Get scores for all paragraphs
-        doc_scores = bm25.get_scores(tokenized_query)
-        print('BM25 Scores:')
-        print(doc_scores)
-
-        # adjust top docs based on number of docs
-        if len(tokenized_corpus) < top_n:
-            top_n = len(tokenized_corpus)
-
-        # Get the top n scores
-        top_n_scores_idx = [score for score in reversed(np.argsort(doc_scores)[-top_n:])]
-
-        # Get the top n paragraphs in their original form
-        top_n_docs = paragraphs[top_n_scores_idx]
-
         results = list()
 
-        # Print rank and paragraph
-        print('Paragraph Rankings:')
-        for idx, doc in enumerate(top_n_docs):
-            #Removing results where BM25 score is 0
-            if doc_scores[top_n_scores_idx[idx]] != 0:
-                doc_dict = {}
-                rank = idx + 1
-                doc_dict['id'] = str(uuid.uuid4())
-                doc_dict['rank'] = rank
-                doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
-                doc_dict['passage'] = self.cleanpassage(doc)
-                results.append(doc_dict)
-                print('Rank {}: '.format(rank) + doc)
+        # Initialize BM25 model, currently using default parameters k1=1.5, b=0.75
+        logging.info("Before BM25 Call. k1={k1val} b={bval}".format(k1val=k1,bval=b))
+        logging.info(tokenized_corpus)
+        try:
+            bm25 = BM25Okapi(tokenized_corpus, k1=k1, b=b)
+            logging.info("After BM25 Call")
+        
+            # Tokenize query for BM25 retrieval
+            tokenized_query = query.split()
+
+            # Get scores for all paragraphs
+            doc_scores = bm25.get_scores(tokenized_query)
+            print('BM25 Scores:')
+            print(doc_scores)
+
+            # adjust top docs based on number of docs
+            if len(tokenized_corpus) < top_n:
+                top_n = len(tokenized_corpus)
+
+            # Get the top n scores
+            top_n_scores_idx = [score for score in reversed(np.argsort(doc_scores)[-top_n:])]
+
+            # Get the top n paragraphs in their original form
+            top_n_docs = paragraphs[top_n_scores_idx]
+
+            # Print rank and paragraph
+            print('Paragraph Rankings:')
+            for idx, doc in enumerate(top_n_docs):
+                #Removing results where BM25 score is 0
+                if doc_scores[top_n_scores_idx[idx]] != 0:
+                    doc_dict = {}
+                    rank = idx + 1
+                    doc_dict['id'] = str(uuid.uuid4())
+                    doc_dict['rank'] = rank
+                    doc_dict['score'] = doc_scores[top_n_scores_idx[idx]]
+                    doc_dict['passage'] = self.cleanpassage(doc)
+                    results.append(doc_dict)
+                    print('Rank {}: '.format(rank) + doc)
+        except Exception as e:
+            logging.error(str(e))
 
         json_return = json.dumps(results)
         if store==True:

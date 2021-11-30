@@ -12,3 +12,5 @@ nltk
 gensim
 goose3
 azure-cosmos
+argparse
+numpy
