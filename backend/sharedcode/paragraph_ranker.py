@@ -188,6 +188,7 @@ class ParagraphRanker:
         tokenized_corpus = [doc.split(' ') for doc in paragraphs_clean]
 
         results = list()
+
         # Initialize BM25 model, currently using default parameters k1=1.5, b=0.75
         logging.info("Before BM25 Call. k1={k1val} b={bval}".format(k1val=k1,bval=b))
         logging.info(tokenized_corpus)
