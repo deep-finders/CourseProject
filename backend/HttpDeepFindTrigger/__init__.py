@@ -72,9 +72,13 @@ async def main(req: func.HttpRequest, context) -> func.HttpResponse:
              search requires a mode be passed
             """
             if mode == "both":
+                logging.info("Before Both Call")
                 returnstring = pr.searchBoth(documentHtml,query,maxResults,splitby,numelements,k1,b,stem)
+                logging.info("After Both Call")
             else:
+                logging.info("Before " + mode + " Call")
                 returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b,stem)
+                logging.info("After " + mode + " Call")
             statuscode = 200
         except Exception as e:
             returnstring = str(e)
