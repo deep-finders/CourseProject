@@ -80,6 +80,7 @@ class ParagraphRanker:
 
             # Retrieve the entire cleaned article
             logging.info('Calling goose with splityby="{}"'.format(split_by))
+            logging.info('raw_html:' + raw_html[-100:])
             g = Goose()
             article = g.extract(raw_html=raw_html)
             lines = article.cleaned_text.split(split_by)

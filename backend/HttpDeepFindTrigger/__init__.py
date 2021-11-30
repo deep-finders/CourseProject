@@ -10,8 +10,7 @@ import pytoml
 from multiprocessing import Pool
 import sharedcode.paragraph_ranker as ranker
 
-#this async tag helps stop some threading issues with metapy
-async def main(req: func.HttpRequest, context) -> func.HttpResponse:
+def main(req: func.HttpRequest, context) -> func.HttpResponse:
 
     try:
         req_body = req.get_json()
