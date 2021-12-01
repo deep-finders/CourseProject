@@ -26,8 +26,8 @@ const DeepFinder = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [visibleSearchResults, setVisibleSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState();
+  const [visibleSearchResults, setVisibleSearchResults] = useState();
   const [selectedPassageRank, setSelectedPassageRank] = useState();
 
   const handleDocumentTextRetrieved = useCallback(async ({
@@ -110,6 +110,8 @@ const DeepFinder = () => {
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
+    setSearchResults(null);
+    setVisibleSearchResults(null);
     setIsLoading(true);
     foundPassages.current = [];
 
@@ -126,13 +128,14 @@ const DeepFinder = () => {
         isLoading={isLoading}
       />
 
-      {visibleSearchResults && visibleSearchResults.length > 0 && (
+      {visibleSearchResults?.length > 0 && (
         <ResultsList
           handleClickResult={handleClickResult}
           searchResults={visibleSearchResults}
           selectedPassageRank={selectedPassageRank}
         />
       )}
+
     </div>
   );
 }
