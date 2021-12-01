@@ -33,12 +33,13 @@ class ParagraphRanker:
         nltk.download('punkt')
 
     # Clean stopwords
-    def remove_stopwords(self, paragraphs):
+    def remove_stopwords_and_punctuation(self, paragraphs):
         sw_removed_paragraphs = list()
         for paragraph in paragraphs:
             paragraph_tokens = word_tokenize(paragraph)
             tokens_without_sw = [word for word in paragraph_tokens if word not in STOPWORDS]
-            sw_removed_paragraph = ' '.join(tokens_without_sw)
+            tokens_without_punctuation = [word for word in tokens_without_sw if word.isalnum()]
+            sw_removed_paragraph = ' '.join(tokens_without_punctuation)
             sw_removed_paragraphs.append(sw_removed_paragraph)
 
         return sw_removed_paragraphs
@@ -177,7 +178,7 @@ class ParagraphRanker:
         logging.info('Number of paragraphs: {}'.format(len(paragraphs)))
 
         # Remove stop words from paragraphs
-        paragraphs_clean = self.remove_stopwords(paragraphs)
+        paragraphs_clean = self.remove_stopwords_and_punctuation(paragraphs)
 
         # Optional stem paragraphs, doesn't seem to always be an improvement
         if stem == 'Y' or stem == 'y':
