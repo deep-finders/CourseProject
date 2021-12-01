@@ -1,36 +1,58 @@
 /**
  * Constants
  */
-const SELECT_RESULT = 'select_result';
-const REQUEST_PAGE = 'request_page';
-const SEND_PAGE = 'send_page';
+const portName = 'deep-finder';
 
-//AI: remove or update markJsDefaultConfig
+// Content Script Actions
+const SEND_PAGE = 'send_page';
+const PASSAGE_FOUND = 'passage_found';
+
+// Extension Actions
+const CLEAR_HIGHLIGHTS = 'clear_highlights';
+const FIND_PASSAGES = 'find_passages';
+const REQUEST_PAGE = 'request_page';
+const SELECT_RESULT = 'select_result';
+
 const markJsDefaultConfig = {
 	acrossElements: true,
 	className: 'highlight',
 	debug: true,
 	element: 'span',
+	iframes: true,
 	ignoreJoiners: false,
-	separateWordSearch: 'false',
+	separateWordSearch: false,
 }
 
 /**
  *
- * @param {object} result Passage result
+ * @param {object} result - passage result
  * @param {number} result.id
  * @param {string} result.passage
  */
 function handleHighlightPassage(result) {
-	console.log('selected result:', result);
-	markDocument(result.passage);
+	markDocument(result);
 }
 
+/**
+ * 
+ * @param {event}
+ * @param {string} event.action
+ * @param {object} event.payload
+ * @param {object} port - reuse long-lived connection
+ * @returns
+ */
 function handleOnMessage({ action, payload }, port) {
 	console.info('Handing message:', { action, payload });
 	switch (action) {
-		case SELECT_RESULT: {
-			handleHighlightPassage(payload);
+		case CLEAR_HIGHLIGHTS: {
+			unmarkHighlights();
+			break;
+		}
+
+		case FIND_PASSAGES: {
+			payload.forEach((foundResult, i) => {
+				findPassage(foundResult, port);
+			});
 			break;
 		}
 
@@ -48,44 +70,77 @@ function handleOnMessage({ action, payload }, port) {
 			break;
 		}
 
+		case SELECT_RESULT: {
+			unmarkHighlights(() => {
+				handleHighlightPassage(payload);
+			});
+			break;
+		}
+
+		case PASSAGE_FOUND: {
+			console.log('(content-script) passage found:', payload);
+			break;
+		}
+
 		default:
 			return;
 	}
 }
 
-function markDocument(passage) {
-	const markJs = new Mark(document.querySelector("body"));
-	//Removes previous marks
-	markJs.unmark({ done: function(){
-		//Adds new marks
-		markJs.mark(passage, {
-			"separateWordSearch": false,
-			"debug": true,
-			"acrossElements": true,
-			"className": "highlight",
-			//"accuracy": {
-			//	"value": "exactly",
-			//	"limiters": [",", ".","'","\""]
-			//},
-			done: function () {
-				//AI: Add code to handle exceptions when no match
-				var elements = document.getElementsByClassName("highlight");
-				var markedElemend = elements[0];
-				markedElemend.scrollIntoView({
-					behavior: 'auto',
-					block: 'center',
-					inline: 'center'
-				});
+/**
+ * Unmarks all MarkJS highlights
+ * @param {function} doneCallback
+ */
+function unmarkHighlights(doneCallback = () => {}) {
+	const markJs = new Mark(document.querySelector('body'));
+	markJs.unmark({
+		className: 'highlight',
+		done: () => { doneCallback() }
+	});
+}
+
+function findPassage(result, port) {
+	const markJs = new Mark(document.querySelector('body'));
+	markJs.mark(result.passage, {
+		...markJsDefaultConfig,
+		className: '',
+		done: (numMarks) => {
+			if (port && numMarks) {
+				port.postMessage({
+					action: PASSAGE_FOUND,
+					payload: result
+				})
 			}
-		})
-	}})
+		}
+	})
+}
+
+function markDocument(result) {
+	const markJs = new Mark(document.querySelector('body'));
+	markJs.mark(result.passage, {
+		...markJsDefaultConfig,
+		className: 'highlight',
+		each: (element) => {
+			element && element.scrollIntoView({
+				behavior: 'smooth',
+				block: 'center',
+			});
+		}
+	})
+}
+
+
+try {
+	unmarkHighlights();
+} catch(e) {
+	console.error('Error unmarking highlights on load:', e);
 }
 
 if (chrome && chrome.runtime) {
 	chrome.runtime.onConnect.addListener(port => {
 		console.log('Connected to port:', port);
-	
-		if (port.name === 'deep-finder') {
+
+		if (port.name === portName) {
 			port.onMessage.addListener(handleOnMessage);
 		}
 	});
