@@ -9,6 +9,29 @@ import metapy
 import pytoml
 from multiprocessing import Pool
 import sharedcode.paragraph_ranker as ranker
+import uuid
+import sharedcode.store_rankings as store_rankings
+
+"""
+    This is a helper function to store the results for parameter tuning
+"""
+def store_final_rankings(query, results, raw_html):
+    # add a field to set the recommendation
+    for result in results:
+        result['feedback'] = '0'
+
+    rankings = dict()
+    rankings_id = str(uuid.uuid4())
+    rankings["id"] = rankings_id
+    rankings["query"] = query
+    rankings["results"] = results
+    rankings["documentHtml"] = raw_html
+
+    try:
+        dal = store_rankings.RankerDAL()
+        dal.store_rankings(rankings_id, rankings)
+    except Exception as e:
+        logging.info('Error storing results in CosmosDB:' + str(e))
 
 def main(req: func.HttpRequest, context) -> func.HttpResponse:
 
@@ -72,17 +95,21 @@ def main(req: func.HttpRequest, context) -> func.HttpResponse:
             """
             if mode == "both":
                 logging.info("Before Both Call")
-                returnstring = pr.searchBoth(documentHtml,query,maxResults,splitby,numelements,k1,b,stem)
+                results = pr.searchBoth(documentHtml,query,maxResults,splitby,numelements,k1,b,stem)
+                returnstring = json.dumps(results)
                 logging.info("After Both Call")
             else:
                 logging.info("Before " + mode + " Call")
-                returnstring = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b,stem)
+                results = pr.search(documentHtml,query,maxResults,mode,splitby,numelements,k1,b,stem)
+                returnstring = json.dumps(results)
                 logging.info("After " + mode + " Call")
             statuscode = 200
+            store_final_rankings(query, results, documentHtml)
         except Exception as e:
             returnstring = str(e)
             statuscode = 500
         
+   
         return func.HttpResponse(returnstring, status_code=statuscode)
     else:
         return func.HttpResponse(

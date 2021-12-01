@@ -121,26 +121,6 @@ class ParagraphRanker:
 
             return np.array(paragraphs)
     
-    """
-        This is a helper function to store the results for parameter tuning
-    """
-    def store_rankings(self, query, results, raw_html):
-        # add a field to set the recommendation
-        for result in results:
-            result['feedback'] = '0'
-
-        rankings = dict()
-        rankings_id = str(uuid.uuid4())
-        rankings["id"] = rankings_id
-        rankings["query"] = query
-        rankings["results"] = results
-        rankings["documentHtml"] = raw_html
-
-        try:
-            dal = store_rankings.RankerDAL()
-            dal.store_rankings(rankings_id, rankings)
-        except:
-            logging.info('Error storing results in CosmosDB')
 
     """
         This is a helper method to quickly remove some unwanted tags
@@ -153,7 +133,7 @@ class ParagraphRanker:
     """
         This is the main method that will parse the html and call the BM25 ranking function
     """
-    def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem, store=True):
+    def search(self, raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem):
 
         # Save original query
         original_query = query
@@ -231,19 +211,14 @@ class ParagraphRanker:
         except Exception as e:
             logging.error(str(e))
 
-        json_return = json.dumps(results)
-        if store==True:
-            self.store_rankings(original_query, results, raw_html)
-
-        return json_return
+        return results
 
     #This method will call both the pseudo mode and tag mode and return the best results
-    def searchBoth(self, raw_html, query, top_n, split_by, num_elements, k1, b, stem, store=True):
+    def searchBoth(self, raw_html, query, top_n, split_by, num_elements, k1, b, stem):
 
-            tag_results_orig = self.search(raw_html, query, top_n, "tag", split_by, num_elements, k1, b, stem,store=store)
-            tag_results =  json.loads(tag_results_orig)
-            psuedo_results_orig = self.search(raw_html, query, top_n, "pseudo", split_by, num_elements, k1, b, stem,store=store)
-            psuedo_results =  json.loads(psuedo_results_orig)
+            tag_results = self.search(raw_html, query, top_n, "tag", split_by, num_elements, k1, b, stem)
+            psuedo_results = self.search(raw_html, query, top_n, "pseudo", split_by, num_elements, k1, b, stem)
+
             tag_score = 0
             psuedo_score = 0
             tag_result_found = False
@@ -260,12 +235,12 @@ class ParagraphRanker:
                 psuedo_score = psuedo_score + float(psuedo_results[i]['score'])
 
             if tag_result_found == False:
-                return psuedo_results_orig
+                return psuedo_results
             else:
                 if tag_score > psuedo_score:
-                    return tag_results_orig 
+                    return tag_results 
                 else:
-                    return psuedo_results_orig
+                    return psuedo_results
 
 
 """
