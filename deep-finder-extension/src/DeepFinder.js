@@ -22,12 +22,13 @@ const SELECT_RESULT = 'select_result';
 const DeepFinder = () => {
 
   const foundPassages = useRef([]);
+  const port = useRef();
+
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [visibleSearchResults, setVisibleSearchResults] = useState([]);
   const [selectedPassageRank, setSelectedPassageRank] = useState();
-  const [port, setPort] = useState();
 
   const handleDocumentTextRetrieved = useCallback(async ({
     documentHtml,
@@ -53,7 +54,7 @@ const DeepFinder = () => {
   }, [])
 
   useEffect(() => {
-    if (port && port.name === portName) {
+    if (port?.current?.name === portName) {
       return;
     }
 
@@ -78,11 +79,11 @@ const DeepFinder = () => {
     }
 
     async function setupConnection() {
-      if (chrome && chrome.runtime) {
+      if (chrome?.runtime) {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         const connection = chrome.tabs.connect(tab.id, { name: portName });
         connection.onMessage.addListener(chromeMessageListener);
-        setPort(connection);
+        port.current = connection;
       }
     }
 
@@ -90,18 +91,18 @@ const DeepFinder = () => {
   }, [handleDocumentTextRetrieved])
 
   useEffect(() => {
-    if (port && searchResults && searchResults.length > 0) {
-      port.postMessage({
+    if (port?.current && searchResults?.length > 0) {
+      port.current.postMessage({
         action: FIND_PASSAGES,
         payload: searchResults
       });
     }
-  }, [searchResults, port]);
+  }, [searchResults]);
 
 
   const handleClickResult = (result) => {
     setSelectedPassageRank(result.rank);
-    port && port.postMessage({
+    port?.current?.postMessage({
       action: SELECT_RESULT,
       payload: result,
     })
@@ -112,8 +113,8 @@ const DeepFinder = () => {
     setIsLoading(true);
     foundPassages.current = [];
 
-    port && port.postMessage({ action: CLEAR_HIGHLIGHTS });
-    port && port.postMessage({ action: REQUEST_PAGE, payload: { query }});
+    port?.current?.postMessage({ action: CLEAR_HIGHLIGHTS });
+    port?.current?.postMessage({ action: REQUEST_PAGE, payload: { query }});
   }
 
   return (
