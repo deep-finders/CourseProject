@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { ReactComponent as SearchIcon } from '../icons/search-icon.svg';
+import { ReactComponent as LoadingIcon } from '../icons/loading.svg';
 
 const SearchForm = ({
 	handleSearch = () => {},
@@ -32,8 +33,20 @@ const SearchForm = ({
 				type="submit"
 				disabled={isLoading}
 			>
-				<SearchIcon className="h-5 w-5 fill-current" />
-				<span>Search</span>
+				{isLoading
+					? (
+						<>
+							<LoadingIcon className="h-5 w-5 animate-spin" />
+							<span>Searching</span>
+						</>
+					)
+					: (
+						<>
+							<SearchIcon className="h-5 w-5 fill-current" />
+							<span>Search</span>
+						</>
+					)
+				}
 			</button>
 		</form>
 	)
