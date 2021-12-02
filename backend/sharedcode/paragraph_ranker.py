@@ -32,6 +32,13 @@ class ParagraphRanker:
     def __init__(self):
         nltk.download('punkt')
 
+    # Log text approriately based on function or called directly
+    def logtext(self, logtext):
+        if isfunction == 'true':
+            logging.info(logtext)
+        else:
+            print(logtext)
+
     # Clean stopwords
     def remove_stopwords_and_punctuation(self, paragraphs):
         sw_removed_paragraphs = list()
@@ -80,12 +87,12 @@ class ParagraphRanker:
         if mode == 'pseudo':
 
             # Retrieve the entire cleaned article
-            logging.info('Calling goose with splityby="{}"'.format(split_by))
-            logging.info('raw_html:' + raw_html[-100:])
+            self.logtext('Calling goose with splityby="{}"'.format(split_by))
+            self.logtext('raw_html:' + raw_html[-100:])
             g = Goose()
             article = g.extract(raw_html=raw_html)
             lines = article.cleaned_text.split(split_by)
-            logging.info('Number of lines in pseudo mode: {}'.format(len(lines)))
+            self.logtext('Number of lines in pseudo mode: {}'.format(len(lines)))
 
             # Form paragraphs from multiples of num_elements
             i = 0
@@ -140,7 +147,7 @@ class ParagraphRanker:
 
         # Build list of paragraphs
         paragraphs = self.get_paragraphs(raw_html, mode, split_by, num_elements)
-        logging.info('Number of paragraphs after get_paragraphs: {}'.format(len(paragraphs)))     
+        self.logtext('Number of paragraphs after get_paragraphs: {}'.format(len(paragraphs)))     
 
         # Remove any empty paragraphs
         paragraphs = self.remove_empty_paragraphs(paragraphs)
@@ -154,8 +161,7 @@ class ParagraphRanker:
         len(paragraphs) > n where n is the number of relevant paragraphs returned 
         by the ranker.
         '''
-        print('Number of paragraphs: {}'.format(len(paragraphs)))
-        logging.info('Number of paragraphs: {}'.format(len(paragraphs)))
+        self.logtext('Number of paragraphs: {}'.format(len(paragraphs)))
 
         # Remove stop words from paragraphs
         paragraphs_clean = self.remove_stopwords_and_punctuation(paragraphs)
@@ -171,19 +177,19 @@ class ParagraphRanker:
         results = list()
 
         # Initialize BM25 model, currently using default parameters k1=1.5, b=0.75
-        logging.info("Before BM25 Call. k1={k1val} b={bval}".format(k1val=k1,bval=b))
-        logging.info(tokenized_corpus)
+        self.logtext("Before BM25 Call. k1={k1val} b={bval}".format(k1val=k1,bval=b))
+        self.logtext(tokenized_corpus)
         try:
             bm25 = BM25Okapi(tokenized_corpus, k1=k1, b=b)
-            logging.info("After BM25 Call")
+            self.logtext("After BM25 Call")
         
             # Tokenize query for BM25 retrieval
             tokenized_query = query.split()
 
             # Get scores for all paragraphs
             doc_scores = bm25.get_scores(tokenized_query)
-            print('BM25 Scores:')
-            print(doc_scores)
+            self.logtext('BM25 Scores:')
+            self.logtext(doc_scores)
 
             # adjust top docs based on number of docs
             if len(tokenized_corpus) < top_n:
@@ -196,7 +202,7 @@ class ParagraphRanker:
             top_n_docs = paragraphs[top_n_scores_idx]
 
             # Print rank and paragraph
-            print('Paragraph Rankings:')
+            self.logtext('Paragraph Rankings:')
             for idx, doc in enumerate(top_n_docs):
                 #Removing results where BM25 score is 0
                 if doc_scores[top_n_scores_idx[idx]] != 0:
@@ -209,7 +215,7 @@ class ParagraphRanker:
                     results.append(doc_dict)
                     print('Rank {}: '.format(rank) + doc)
         except Exception as e:
-            logging.error(str(e))
+            self.logtext(str(e))
 
         return results
 
