@@ -7,7 +7,7 @@ import os
 
 """
   This logic was created to loop through different parameter values and look for the most optimal
-  mode, k1, and b
+  k1, and b (mode removed as we introduced "both" mode)
 """
 
 #precision calcs modified From https://gist.github.com/eribeiro/4630eb4b5562f38fd478d9694aa41ce2
@@ -22,7 +22,7 @@ def avg_precision(docs):
     return sum(vals_to_avg) / len(vals_to_avg) if vals_to_avg else 0
 
 
-def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
+def run_test(test_set,top_n, split_by, num_elements, k1, b, stem):
     map = 0
     ap_counter = 0
     count = 0
@@ -44,8 +44,7 @@ def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
 
 
         try:
-            new_results = pr.search(raw_html, query, top_n, mode, split_by, num_elements, k1, b, stem,store=False)
-            new_results = json.loads(new_results)
+            new_results = pr.searchBoth(raw_html, query, top_n, split_by, num_elements, k1, b, stem)
 
             #now need to build a list of passages in new_results that are in results with feedback = 1
             found_list = list()
@@ -66,8 +65,8 @@ def run_test(test_set,top_n, mode, split_by, num_elements, k1, b, stem):
             ap_counter = ap_counter + avg_precision(found_list)
 
             count = count+1
-        except:
-            print('Error calculating search')
+        except Exception as ex:
+            print('Error calculating search:' + str(ex))
 
     if count > 0:
         map = ap_counter/count
@@ -89,7 +88,7 @@ def main():
     #this may have memory issues once dataset grows
     testset = list(testset)
 
-    ##We'll vary b from 0 to 1 and k from 0 to 3 and for modes pseudo and tag
+    ##We'll vary b from 0 to 1 and k from 0 to 3 (removed varying modes since we have "both" mode)
     bsplits = 10
     k1splits = 30
 
@@ -99,17 +98,19 @@ def main():
     k1_list = np.linspace(0,3,k1splits)
     k1_list = np.round(k1_list,2)
 
-    num_tests = len(tag_list) * len(b_list) * len(k1_list)
+    #num_tests = len(tag_list) * len(b_list) * len(k1_list)
+    num_tests = len(b_list) * len(k1_list)
     tests_executed = 0
 
     results_dict = {}
-    for mode in tag_list:
-        for b in b_list:
-            for k1 in k1_list:
-                results = run_test(testset,top_n, mode, split_by, num_elements, k1, b, stem)
-                results_dict[(mode,b,k1)] = {'score':results}  
-                tests_executed = tests_executed + 1
-                print('*********** ' + str(tests_executed) + ' of ' + str(num_tests) + ' tests executed. ***********')
+    #for mode in tag_list:
+    mode = "both"
+    for b in b_list:
+        for k1 in k1_list:
+            results = run_test(testset,top_n, split_by, num_elements, k1, b, stem)
+            results_dict[(mode,b,k1)] = {'score':results}  
+            tests_executed = tests_executed + 1
+            print('*********** ' + str(tests_executed) + ' of ' + str(num_tests) + ' tests executed. ***********')
 
             
     # Show results
